@@ -391,7 +391,11 @@
 
   <section class="component-container" [ngSwitch]="selectedComponent.value">
       <ng-container *ngSwitchCase="'NgxVideoPlayerComponent'">
-        <ngx-video-player></ngx-video-player>
+        <ngx-video-player
+          [style.width.px]="1200"
+          [style.aspect-ratio]="'16:9'"
+          [sources]="sources"
+          [poster]="poster"></ngx-video-player>
       </ng-container>
       <div *ngSwitchDefault>output2</div>
   </section>

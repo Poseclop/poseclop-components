@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { NgxVideoPlayerComponent } from './ngx-video-player.component';
+import { CommonModule } from '@angular/common';
 
 
 
@@ -8,6 +9,7 @@ import { NgxVideoPlayerComponent } from './ngx-video-player.component';
     NgxVideoPlayerComponent
   ],
   imports: [
+    CommonModule,
   ],
   exports: [
     NgxVideoPlayerComponent
