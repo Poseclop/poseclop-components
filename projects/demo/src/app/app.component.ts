@@ -1,4 +1,10 @@
 import { Component } from '@angular/core';
+import { NgxVideoPlayerComponent } from 'ngx-video-player';
+import { BehaviorSubject } from 'rxjs';
+
+const components = [
+  'NgxVideoPlayerComponent'
+] as const;
 
 @Component({
   selector: 'app-root',
@@ -6,5 +12,10 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'demo';
+  title = 'Demo';
+
+  selectedComponent = new BehaviorSubject<null | typeof components[number]>(null);
+
+  constructor() {
+  }
 }

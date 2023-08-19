@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'lib-ngx-video-player',
+  selector: 'ngx-video-player',
   template: `
-    <p>
-      ngx-video-player works!
-    </p>
+    <figure>
+      <video controls preload="metadata" poster="assets/img/poster.jpg"></video>
+    </figure>
   `,
   styles: [
   ]
