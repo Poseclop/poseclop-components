@@ -32,8 +32,13 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
             (keyup.ArrowRight)="advanceVideoBy(10)"
             (keyup.ArrowLeft)="advanceVideoBy(-10)"
             (focus)="onProgressHover()">
-            <span></span>
           </progress>
+          <div class="thumbnail">
+            <div>
+              <img [src]="thumbnailSrc" alt="">
+            </div>
+            <p style="color: white" *ngIf="thumbnailTime">{{ thumbnailTime | time }}</p>
+          </div>
         </li>
         <div class="buttons">
           <li><button type="button" (click)="toggleVideoPlayPause()">
@@ -43,13 +48,13 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
           <li><button type="button">
             <span class="material-icons">stop</span>
           </button></li>
-          <li><button type="button" (click)="video.muted = !video.muted">
+          <li class="mute"><button type="button" (click)="video.muted = !video.muted">
             <span *ngIf="!video.muted; else muteIcon" class="material-icons">volume_up</span>
             <ng-template #muteIcon><span class="material-icons">volume_off</span></ng-template>
           </button></li>
+          <li class="volume-control"><input type="range" min="0" max="1" step="0.1" (input)="onVolumeChange($event)"></li>
+          <li class="video-duration"><span>{{video.currentTime | time}} / {{video.duration | time}}</span></li>
           <span style="flex-grow: 1;"></span>
-          <li><button type="button">Vol+</button></li>
-          <li><button type="button">Vol-</button></li>
           <li><button *ngIf="fullScreenEnabled" type="button" (click)="setFullScreen()"><span class="material-icons">fullscreen</span></button></li>
         </div>
       </ul>
@@ -64,26 +69,25 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
       margin: 0;
       padding: 0;
       width: 100%;
-      height: 100%;
       position: relative;
     }
 
     video {
+      display: block;
       width: 100%;
-      height: 100%;
       background: #000;
     }
 
     .controls {
+      position: absolute;
       list-style: none;
       margin: 0;
-      padding: 4px;
       box-sizing: border-box;
-      position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
       background: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.1));
+      padding: 0 8px 4px 8px;
 
       .buttons {
         display: flex;
@@ -98,6 +102,9 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
         width: 36px;
         height: 36px;
         border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         &:focus,
         &:hover {
@@ -123,8 +130,7 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
           top: -100px;
           left: calc(var(--hover-x) - 80px);
           width: 160px;
-          height: 90px;
-          background: red;
+          height: min-content;
         }
 
         progress {
@@ -139,6 +145,10 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
             width: var(--hover-x);
             height: 100%;
             background-color: rgba(0,0,0,0.3);
+          }
+
+          &::after {
+            content: '';
           }
         }
       }
@@ -155,12 +165,68 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
 
     }
 
-    img {
-      position: absolute;
-      top: 0;
-      left: 0;
+    .progress:hover .thumbnail {
+      visibility: visible;
     }
 
+    .thumbnail {
+      display: block;
+      visibility: hidden;
+      position: absolute;
+      top: -100px;
+      left: calc(var(--hover-x) - 80px);
+
+      img {
+        border: 2px solid white;
+        display: block;
+      }
+
+      p {
+        text-align: center;
+        margin-top: 4px;
+      }
+    }
+
+    .video-duration {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      margin-left: 8px;
+    }
+
+    .volume-control {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 0;
+      overflow: hidden;
+      transition: width 0.2s ease-in-out;
+
+      input {
+        cursor: pointer;
+        -webkit-appearance: none;
+        appearance: none;
+        background: white;
+        height: 4px;
+        border-radius: 2px;
+        width: 80px;
+
+        &::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 12px;
+          height: 12px;
+          border-radius: 6px;
+          background: white;
+        }
+      }
+    }
+
+    .mute:hover + .volume-control,
+    .volume-control:hover {
+      width: 80px;
+    }
   `
   ]
 })
@@ -185,6 +251,9 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
 
   private unsubscribe$ = new Subject<void>();
   private updateThumbnail$ = new Subject<number>()
+
+  public thumbnailSrc?: string;
+  public thumbnailTime?: number;
 
   //#region PUBLIC METHODS
 
@@ -229,18 +298,24 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
     ).subscribe((seconds) => {
       if (!video) {
         video = this.video.nativeElement.cloneNode(true) as HTMLVideoElement;
+        const controls = video.children.namedItem('controls');
+        console.warn(controls)
+        // video.src = this.video.nativeElement.src;
+        // video.preload = 'metadata';
+
         video.addEventListener('seeked', () => {
           canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
           canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const thumbnailSrc = canvas.toDataURL();
-          this.progress.nativeElement.parentElement?.style.setProperty('--thumbnail-src', `url(${thumbnailSrc})`);
+          this.thumbnailSrc = canvas.toDataURL();
         });
       }
 
       if (!canvas) {
         canvas = document.createElement("canvas");
+        const ratio = this.video.nativeElement.videoWidth / this.video.nativeElement.videoHeight;
         canvas.width = 160;
-        canvas.height = 90;
+        canvas.height = Math.floor(160 / ratio);
+        console.warn(canvas.width, canvas.height);
       }
 
       video.currentTime = seconds;
@@ -276,6 +351,11 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
     this.progress.nativeElement.value = this.video.nativeElement.currentTime;
   }
 
+  onVolumeChange(event: Event): void {
+    const volume = (event.target as HTMLInputElement).value;
+    this.video.nativeElement.volume = Number(volume);
+  }
+
   /**
    * Called when the user hovers over the progress bar
    * @param event The mouse event
@@ -283,9 +363,11 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
    */
   onProgressHover(event?: MouseEvent): void {
     if (!event) return
+    console.warn("WOOT");
     const rect = this.progress.nativeElement.getBoundingClientRect();
     const pos = (event.clientX - rect.left) / rect.width;
     this.progress.nativeElement.parentElement?.style.setProperty('--hover-x', `${event.clientX - rect.left}px`);
+    this.thumbnailTime = Math.floor(pos * this.video.nativeElement.duration);
     this.updateThumbnail$.next(Math.floor(pos * this.video.nativeElement.duration));
   }
 
