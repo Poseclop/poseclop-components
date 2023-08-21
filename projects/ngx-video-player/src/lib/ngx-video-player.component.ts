@@ -16,7 +16,7 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
   selector: 'ngx-video-player',
   template: `
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <figure>
+    <figure #figure>
       <video #video
         [controls]="!browserSupportsVideo"
         preload="metadata"
@@ -242,6 +242,7 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
   /** The video element */
   @ViewChild('video') video!: ElementRef<HTMLVideoElement>;
   @ViewChild('progress') progress!: ElementRef<HTMLProgressElement>;
+  @ViewChild('figure') figure!: ElementRef<HTMLElement>;
   //#endregion
 
   //#region PROPERTIES
@@ -378,7 +379,7 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
-      this.video.nativeElement.requestFullscreen();
+      this.figure.nativeElement.requestFullscreen();
     }
   }
 
