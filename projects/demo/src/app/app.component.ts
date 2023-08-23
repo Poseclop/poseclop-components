@@ -27,6 +27,22 @@ export class AppComponent {
       type: 'video/webm',
     },
   ];
+  tracks = [
+    {
+      src: 'assets/vtt/TOS-en.vtt',
+      kind: 'subtitles',
+      srclang: 'en',
+      default: true,
+      label: 'English'
+    },
+    {
+      src: 'assets/vtt/TOS-fr-Goofy.vtt',
+      kind: 'subtitles',
+      srclang: 'fr',
+      default: true,
+      label: 'Français'
+    },
+  ]
   chapters = [
     {
       title: 'Chapter 1',

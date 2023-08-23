@@ -6,6 +6,14 @@ export interface ISourceAttributes {
   type: string;
 }
 
+export interface ITrackAttributes {
+  src: string;
+  kind: string;
+  srclang: string;
+  default: boolean;
+  label: string;
+}
+
 function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
   return (source: Observable<T>) =>
     merge(source.pipe(throttleTime(duration)), source.pipe(debounceTime(duration)))
@@ -26,6 +34,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     title: '',
     time: 0
   }];
+  @Input() tracks: ITrackAttributes[] = [];
 
   //#endregion
 
@@ -34,6 +43,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   @ViewChild('video') video!: ElementRef<HTMLVideoElement>;
   @ViewChild('progress') progress!: ElementRef<HTMLElement>;
   @ViewChild('figure') figure!: ElementRef<HTMLElement>;
+  @ViewChild('trackMenuButton') trackMenuButton!: ElementRef<HTMLElement>;
   //#endregion
 
   //#region PROPERTIES
@@ -48,13 +58,15 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   public thumbnailTime?: number;
   public thunmnailChapter?: string;
 
+  public trackMenuOpen = false;
+
   //#region LIFECYCLE HOOKS
   ngOnInit(): void {
     this.handleThumbnailDisplay();
   }
 
   ngAfterViewInit(): void {
-    this.handleMouseMovement()
+    this.handleMouseMovement();
   }
 
   ngOnDestroy(): void {
@@ -92,6 +104,18 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     const pos = (event.clientX - rect.left) / rect.width;
     this.video.nativeElement.currentTime = pos * this.video.nativeElement.duration;
   }
+
+  public selectSubtitles(track: ITrackAttributes): void {
+    for (let i = 0; i< this.video.nativeElement.textTracks.length; i++) {
+      if (this.video.nativeElement.textTracks[i].language === track.srclang) {
+        this.video.nativeElement.textTracks[i].mode = 'showing';
+      } else {
+        this.video.nativeElement.textTracks[i].mode = 'hidden';
+      }
+    }
+    this.trackMenuOpen = false;
+  }
+
   //#endregion
 
   //#endregion PRIVATE METHODS
@@ -105,11 +129,6 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     ).subscribe((seconds) => {
       if (!video) {
         video = this.video.nativeElement.cloneNode(true) as HTMLVideoElement;
-        const controls = video.children.namedItem('controls');
-        console.warn(controls)
-        // video.src = this.video.nativeElement.src;
-        // video.preload = 'metadata';
-
         video.addEventListener('seeked', () => {
           canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
           canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
