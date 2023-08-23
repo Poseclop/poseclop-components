@@ -15,7 +15,12 @@
       background: #000;
     }
 
+    figure.show-controls .controls {
+      height: 48px;
+    }
+
     .controls {
+      height: 0;
       position: absolute;
       list-style: none;
       margin: 0;
@@ -24,7 +29,9 @@
       left: 0;
       width: 100%;
       background: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.1));
-      padding: 16px 8px 4px 8px;
+      padding: 0 8px;
+      overflow: hidden;
+      transition: height 0.2s ease-in-out;
 
       .buttons {
         display: flex;

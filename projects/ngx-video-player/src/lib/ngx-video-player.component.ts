@@ -1,5 +1,5 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { MonoTypeOperatorFunction, Observable, Subject, debounceTime, merge, throttleTime } from 'rxjs';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { MonoTypeOperatorFunction, Observable, Subject, debounceTime, fromEvent, merge, takeUntil, tap, throttleTime } from 'rxjs';
 
 export interface ISourceAttributes {
   src: string;
@@ -17,7 +17,7 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
   templateUrl: './ngx-video-player.component.html',
   styleUrls: ['./ngx-video-player.component.scss'],
 })
-export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
+export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   //#region INPUTS
   /** The sources for the video */
   @Input() sources: ISourceAttributes[] = [];
@@ -50,8 +50,22 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
   public thumbnailTime?: number;
   public thunmnailChapter?: string;
 
-  //#region PUBLIC METHODS
+  //#region LIFECYCLE HOOKS
+  ngOnInit(): void {
+    this.handleThumbnailDisplay();
+  }
 
+  ngAfterViewInit(): void {
+    this.handleMouseMovement()
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
+  }
+  //#endregion
+
+  //#region PUBLIC METHODS
   /**
    * Toggles the video play/pause state
    */
@@ -122,21 +136,21 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
     })
   }
 
-  //#endregion
-
-  //#region LIFECYCLE HOOKS
-  ngOnInit(): void {
-    this.handleThumbnailDisplay();
+  private handleMouseMovement(): void {
+    fromEvent(this.figure.nativeElement, 'mousemove').pipe(
+      tap(() => {
+        if (this.figure.nativeElement.classList.contains('show-controls')) return;
+        this.figure.nativeElement.classList.add('show-controls')
+      }),
+      debounceTime(1500),
+      tap(() => this.figure.nativeElement.classList.remove('show-controls')),
+      takeUntil(this.unsubscribe$)
+    ).subscribe();
   }
 
-  ngOnDestroy(): void {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
-  }
   //#endregion
 
   //#region EVENT HANDLERS
-
   onVolumeChange(event: Event): void {
     const volume = (event.target as HTMLInputElement).value;
     this.video.nativeElement.volume = Number(volume);

@@ -1,11 +1,12 @@
 # NgxVideoPlayer
+An angular video player component.
 
 This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.0.
 
 ## Code scaffolding
 
 Run `ng generate component component-name --project ngx-video-player` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project ngx-video-player`.
-> Note: Don't forget to add `--project ngx-video-player` or else it will be added to the default project in your `angular.json` file. 
+> Note: Don't forget to add `--project ngx-video-player` or else it will be added to the default project in your `angular.json` file.
 
 ## Build
 
