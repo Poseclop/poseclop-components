@@ -394,7 +394,6 @@
         <ngx-video-player
           [style.width.px]="1200"
           [style.aspect-ratio]="'16:9'"
-          [sources]="sources"
           [poster]="poster"
           [chapters]="chapters">
           <source *ngFor="let source of sources" [src]="source.src" [type]="source.type">
