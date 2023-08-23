@@ -1,4 +1,4 @@
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MonoTypeOperatorFunction, Observable, Subject, debounceTime, fromEvent, merge, takeUntil, tap, throttleTime } from 'rxjs';
 
 export interface ISourceAttributes {
@@ -19,8 +19,6 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
 })
 export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   //#region INPUTS
-  /** The sources for the video */
-  @Input() sources: ISourceAttributes[] = [];
   /** The poster that will be used for the video */
   @Input() poster = '';
   /** The chapters for the video */
