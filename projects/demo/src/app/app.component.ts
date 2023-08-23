@@ -27,10 +27,22 @@ export class AppComponent {
       type: 'video/webm',
     },
   ];
-  poster: string = 'assets/img/poster.jpg';
+  chapters = [
+    {
+      title: 'Chapter 1',
+      time: 0,
+    },
+    {
+      title: 'Chapter 2',
+      time: 30
+    },
+    {
+      title: 'Chapter 3',
+      time: 50
+    }
+  ]
+  poster = 'assets/img/poster.jpg';
 
   selectedComponent = new BehaviorSubject<null | typeof components[number]>('NgxVideoPlayerComponent');
 
-  constructor() {
-  }
 }
