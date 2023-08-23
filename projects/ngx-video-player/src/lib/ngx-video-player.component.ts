@@ -21,24 +21,31 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
         [controls]="!browserSupportsVideo"
         preload="metadata"
         [poster]="poster"
-        (loadedmetadata)="onMetadataLoaded()"
-        (timeupdate)="onTimeUpdate()">
+        (loadedmetadata)="onMetadataLodaded()"
+        (timeupdate)="onTimeUpdated()">
         <source *ngFor="let source of sources" [src]="source.src" [type]="source.type">
       </video>
       <ul *ngIf="browserSupportsVideo" class="controls">
-        <li class="progress" (mousemove)="onProgressHover($event)">
-          <progress #progress value="0" min="0" tabindex="0"
-            (click)="setVideoTime($event)"
-            (keyup.ArrowRight)="advanceVideoBy(10)"
-            (keyup.ArrowLeft)="advanceVideoBy(-10)"
-            (focus)="onProgressHover()">
-          </progress>
+        <li #progress class="progress" (mousemove)="onProgressHover($event)">
+            <progress *ngFor="let chapter of chapters | sort; let i = index"
+              #chapterProgress
+              tabindex="0"
+              [value]="video.currentTime - chapter.time"
+              [max]="chapter.duration || 0"
+              [style.width.%]="(chapter.duration || 0) / video.duration * 100"
+              (click)="setVideoTime($event)"
+              (keyup.ArrowRight)="advanceVideoBy(10)"
+              (keyup.ArrowLeft)="advanceVideoBy(-10)"
+              (focus)="onProgressHover()">
+            </progress>
           <div class="thumbnail">
             <div>
               <img [src]="thumbnailSrc" alt="">
             </div>
+            <p style="color: white" *ngIf="thumbnailTime">{{ thumbnailTime | chapter:chapters }}</p>
             <p style="color: white" *ngIf="thumbnailTime">{{ thumbnailTime | time }}</p>
           </div>
+          <div class="chapters"></div>
         </li>
         <div class="buttons">
           <li><button type="button" (click)="toggleVideoPlayPause()">
@@ -53,7 +60,8 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
             <ng-template #muteIcon><span class="material-icons">volume_off</span></ng-template>
           </button></li>
           <li class="volume-control"><input type="range" min="0" max="1" step="0.1" (input)="onVolumeChange($event)"></li>
-          <li class="video-duration"><span>{{video.currentTime | time}} / {{video.duration | time}}</span></li>
+          <li class="text"><span>{{video.currentTime | time}} / {{video.duration | time}}</span></li>
+          <li class="text"><span>&bull;</span><span style="margin-left: 4px">{{video.currentTime | chapter:chapters}} </span></li>
           <span style="flex-grow: 1;"></span>
           <li><button *ngIf="fullScreenEnabled" type="button" (click)="setFullScreen()"><span class="material-icons">fullscreen</span></button></li>
         </div>
@@ -87,10 +95,15 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
       left: 0;
       width: 100%;
       background: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.1));
-      padding: 0 8px 4px 8px;
+      padding: 16px 8px 4px 8px;
 
       .buttons {
         display: flex;
+      }
+
+      & ::ng-deep .material-icons {
+        color: rgba(255, 255, 255, 1);
+        font-size: 20px;
       }
 
       button {
@@ -111,17 +124,13 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
           background: rgba(255, 255, 255, 0.1);
         }
       }
-
-      & ::ng-deep .material-icons {
-        color: rgba(255, 255, 255, 1);
-        font-size: 20px;
-      }
     }
 
     .progress {
       margin-bottom: 4px;
       cursor: pointer;
       position: relative;
+      display: flex;
 
       &:hover {
         &::before {
@@ -133,10 +142,7 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
           height: min-content;
         }
 
-        progress {
-          height: 6px;
-
-          &::before {
+        &::after {
             content: '';
             display: block;
             position: absolute;
@@ -145,24 +151,27 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
             width: var(--hover-x);
             height: 100%;
             background-color: rgba(0,0,0,0.3);
+            overflow: hidden;
           }
 
-          &::after {
-            content: '';
-          }
+        progress {
+          height: 6px;
         }
       }
 
       progress {
+        flex-grow: 1;
+        flex-shrink: 1;
         -webkit-appearance: none;
         appearance: none;
-        width: 100%;
         height: 4px;
         transition: height 0.2s ease-in-out;
         position: relative;
       }
 
-
+      progress:not(:first-child) {
+        margin-left: 4px;
+      }
     }
 
     .progress:hover .thumbnail {
@@ -173,7 +182,7 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
       display: block;
       visibility: hidden;
       position: absolute;
-      top: -100px;
+      top: -124px;
       left: calc(var(--hover-x) - 80px);
 
       img {
@@ -183,11 +192,12 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
 
       p {
         text-align: center;
-        margin-top: 4px;
+        margin-top: 0;
+        margin-bottom: 0;
       }
     }
 
-    .video-duration {
+    .text {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -236,12 +246,18 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
   @Input() sources: ISourceAttributes[] = [];
   /** The poster that will be used for the video */
   @Input() poster = '';
+  /** The chapters for the video */
+  @Input() chapters: { title: string, time: number, duration?: number }[] = [{
+    title: '',
+    time: 0
+  }];
+
   //#endregion
 
   //#region VIEWCHILDREN
   /** The video element */
   @ViewChild('video') video!: ElementRef<HTMLVideoElement>;
-  @ViewChild('progress') progress!: ElementRef<HTMLProgressElement>;
+  @ViewChild('progress') progress!: ElementRef<HTMLElement>;
   @ViewChild('figure') figure!: ElementRef<HTMLElement>;
   //#endregion
 
@@ -255,6 +271,7 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
 
   public thumbnailSrc?: string;
   public thumbnailTime?: number;
+  public thunmnailChapter?: string;
 
   //#region PUBLIC METHODS
 
@@ -275,7 +292,6 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
   stopVideo(): void {
     this.video.nativeElement.pause();
     this.video.nativeElement.currentTime = 0;
-    this.progress.nativeElement.value = 0;
   }
 
   /**
@@ -293,6 +309,7 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
   private handleThumbnailDisplay(): void {
     let video: HTMLVideoElement;
     let canvas: HTMLCanvasElement;
+    let chapters: { title: string, time: number }[];
 
     this.updateThumbnail$.pipe(
       throunceTime(100)
@@ -316,9 +333,14 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
         const ratio = this.video.nativeElement.videoWidth / this.video.nativeElement.videoHeight;
         canvas.width = 160;
         canvas.height = Math.floor(160 / ratio);
-        console.warn(canvas.width, canvas.height);
       }
 
+      if (!chapters) {
+        chapters = this.chapters ? [...this.chapters].sort((a, b) => b.time - a.time) : [];
+      }
+
+      this.thunmnailChapter = chapters.find((chapter) => chapter.time <= seconds)?.title;
+      this.thumbnailTime = seconds;
       video.currentTime = seconds;
     })
   }
@@ -338,23 +360,22 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
 
   //#region EVENT HANDLERS
 
-  /**
-   * Called when the video metadata has been loaded
-   */
-  onMetadataLoaded(): void {
-    this.progress.nativeElement.max = this.video.nativeElement.duration;
-  }
-
-  /**
-   * Called when the video time has been updated
-   */
-  onTimeUpdate(): void {
-    this.progress.nativeElement.value = this.video.nativeElement.currentTime;
-  }
-
   onVolumeChange(event: Event): void {
     const volume = (event.target as HTMLInputElement).value;
     this.video.nativeElement.volume = Number(volume);
+  }
+
+  onMetadataLodaded(): void {
+    this.chapters = this.chapters
+      .sort((a, b) => a.time - b.time)
+      .map((chapter, index) => ({
+        ...chapter,
+        duration: (this.chapters[index + 1]?.time  || this.video.nativeElement.duration) - chapter.time
+      }));
+  }
+
+  onTimeUpdated(): void {
+    // Just need to call the event so that change detection triggers every when time is updated
   }
 
   /**
@@ -364,11 +385,9 @@ export class NgxVideoPlayerComponent implements OnInit, OnDestroy {
    */
   onProgressHover(event?: MouseEvent): void {
     if (!event) return
-    console.warn("WOOT");
     const rect = this.progress.nativeElement.getBoundingClientRect();
     const pos = (event.clientX - rect.left) / rect.width;
     this.progress.nativeElement.parentElement?.style.setProperty('--hover-x', `${event.clientX - rect.left}px`);
-    this.thumbnailTime = Math.floor(pos * this.video.nativeElement.duration);
     this.updateThumbnail$.next(Math.floor(pos * this.video.nativeElement.duration));
   }
 
