@@ -396,9 +396,13 @@
           [style.aspect-ratio]="'16:9'"
           [poster]="poster"
           [chapters]="chapters"
-          [tracks]="tracks">
-          <source *ngFor="let source of sources" [src]="source.src" [type]="source.type">
+          [tracks]="tracks"
+          [sources]="sources">
         </ngx-video-player>
+        <div style="padding: 1rem 0">
+          <button>Video 1</button>
+          <button style="margin-left: 1rem;">Video 2</button>
+        </div>
       </ng-container>
       <div *ngSwitchDefault>output2</div>
   </section>
