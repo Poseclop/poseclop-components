@@ -8,7 +8,7 @@
     (click)="toggleVideoPlayPause()"
     (loadedmetadata)="onMetadataLodaded()"
     (timeupdate)="onTimeUpdated()">
-    <ng-content select="source"></ng-content>
+    <source *ngFor="let source of sources" [src]="source.src" [type]="source.type">
     <track *ngFor="let track of tracks" [src]="track.src" [srclang]="track.srclang" [label]="track.label" [default]="track.default">
   </video>
   <ul *ngIf="browserSupportsVideo" class="controls" aria-controls="video-tag">
@@ -52,10 +52,11 @@
       <li class="text"><span>{{video.currentTime | time}} / {{video.duration | time}}</span></li>
       <li class="text"><span>&bull;</span><span style="margin-left: 4px">{{video.currentTime | chapter:chapters}} </span></li>
       <span style="flex-grow: 1;"></span>
-      <li class="tracks-control">
-        <button #trackMenuButton *ngIf="tracks.length" type="button" (click)="trackMenuOpen = !trackMenuOpen"><span class="material-icons">subtitles</span></button>
-        <ul class="tracks-menu" [ngClass]="{'open': trackMenuOpen}" (clickOutside)="trackMenuOpen = false" [exceptions]="[trackMenuButton]">
+      <li class="tracks-control"  (clickOutside)="trackMenuOpen = false">
+        <button *ngIf="tracks.length" type="button" (click)="trackMenuOpen = !trackMenuOpen"><span class="material-icons">subtitles</span></button>
+        <ul class="tracks-menu" [ngClass]="{'open': trackMenuOpen}">
           <li *ngFor="let track of tracks"><button (click)="selectSubtitles(track)">{{ track.label}}</button></li>
+          <li><button (click)="selectSubtitles(null)">Off</button></li>
         </ul>
       </li>
       <li><button *ngIf="fullScreenEnabled" type="button" (click)="setFullScreen()"><span class="material-icons">fullscreen</span></button></li>

@@ -35,6 +35,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     time: 0
   }];
   @Input() tracks: ITrackAttributes[] = [];
+  @Input() sources: ISourceAttributes[] = [];
 
   //#endregion
 
@@ -43,7 +44,6 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   @ViewChild('video') video!: ElementRef<HTMLVideoElement>;
   @ViewChild('progress') progress!: ElementRef<HTMLElement>;
   @ViewChild('figure') figure!: ElementRef<HTMLElement>;
-  @ViewChild('trackMenuButton') trackMenuButton!: ElementRef<HTMLElement>;
   //#endregion
 
   //#region PROPERTIES
@@ -105,9 +105,12 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     this.video.nativeElement.currentTime = pos * this.video.nativeElement.duration;
   }
 
-  public selectSubtitles(track: ITrackAttributes): void {
+  public selectSubtitles(track: ITrackAttributes | null): void {
+
     for (let i = 0; i< this.video.nativeElement.textTracks.length; i++) {
-      if (this.video.nativeElement.textTracks[i].language === track.srclang) {
+      if (track === null) {
+        this.video.nativeElement.textTracks[i].mode = 'hidden';
+      } else if (this.video.nativeElement.textTracks[i].language === track.srclang) {
         this.video.nativeElement.textTracks[i].mode = 'showing';
       } else {
         this.video.nativeElement.textTracks[i].mode = 'hidden';
