@@ -13,7 +13,8 @@ const components = [
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  sources: ISourceAttributes[] = [
+  selectedVideo = 0;
+  sources: ISourceAttributes[][] = [[
     {
       src: 'assets/video/tears-of-steel-battle-clip-medium.mp4',
       type: 'video/mp4',
@@ -26,23 +27,49 @@ export class AppComponent {
       src: 'assets/video/tears-of-steel-battle-clip-medium.webm',
       type: 'video/webm',
     },
-  ];
-  tracks = [
+  ],[
+    {
+      src: 'assets/video/sintel-short.mp4',
+      type: 'video/mp4',
+    },
+    {
+      src: 'assets/video/sintel-short.webm',
+      type: 'video/webm',
+    }
+  ]];
+  tracks = [[
     {
       src: 'assets/vtt/TOS-en.vtt',
       kind: 'subtitles',
       srclang: 'en',
-      default: true,
       label: 'English'
     },
     {
       src: 'assets/vtt/TOS-fr-Goofy.vtt',
       kind: 'subtitles',
       srclang: 'fr',
-      default: true,
       label: 'Français'
     },
-  ]
+  ],[
+    {
+      src: 'assets/vtt/sintel-en.vtt',
+      kind: 'subtitles',
+      srclang: 'en',
+      label: 'English'
+    },
+    {
+      src: 'assets/vtt/sintel-de.vtt',
+      kind: 'subtitles',
+      srclang: 'de',
+      label: 'Deutsch'
+    },
+    {
+      src: 'assets/vtt/sintel-es.vtt',
+      kind: 'subtitles',
+      srclang: 'es',
+      label: 'Español'
+    }
+  ]]
   chapters = [
     {
       title: 'Chapter 1',
@@ -57,7 +84,7 @@ export class AppComponent {
       time: 50
     }
   ]
-  poster = 'assets/img/poster.jpg';
+  posters = ['assets/img/poster.jpg', 'assets/img/Sintel-Movie-1.jpg'];
 
   selectedComponent = new BehaviorSubject<null | typeof components[number]>('NgxVideoPlayerComponent');
 

@@ -8,7 +8,7 @@
     (click)="toggleVideoPlayPause()"
     (loadedmetadata)="onMetadataLodaded()"
     (timeupdate)="onTimeUpdated()">
-    <source *ngFor="let source of sources" [src]="source.src" [type]="source.type">
+    <source *ngFor="let source of videoSources" [src]="source.src" [type]="source.type">
     <track *ngFor="let track of tracks" [src]="track.src" [srclang]="track.srclang" [label]="track.label" [default]="track.default">
   </video>
   <ul *ngIf="browserSupportsVideo" class="controls" aria-controls="video-tag">

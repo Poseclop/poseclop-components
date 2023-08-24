@@ -10,7 +10,7 @@ export interface ITrackAttributes {
   src: string;
   kind: string;
   srclang: string;
-  default: boolean;
+  default?: boolean;
   label: string;
 }
 
@@ -34,31 +34,46 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     title: '',
     time: 0
   }];
+  /** The tracks for the video */
   @Input() tracks: ITrackAttributes[] = [];
-  @Input() sources: ISourceAttributes[] = [];
-
+  /** The sources for the video */
+  @Input() set sources(sources: ISourceAttributes[]) {
+    this.videoSources = sources;
+    this.video.nativeElement.load();
+  }
   //#endregion
 
   //#region VIEWCHILDREN
   /** The video element */
   @ViewChild('video') video!: ElementRef<HTMLVideoElement>;
+  /** The progress bar element */
   @ViewChild('progress') progress!: ElementRef<HTMLElement>;
+  /** The figure element (container to video and controls) */
   @ViewChild('figure') figure!: ElementRef<HTMLElement>;
   //#endregion
 
-  //#region PROPERTIES
+  //#region PUBLIC PROPERTIES
+  /** Does the browser support video */
   readonly browserSupportsVideo: boolean = !!document.createElement('video').canPlayType;
+  /** Is fullScreen enabled */
   readonly fullScreenEnabled: boolean = !!document.fullscreenEnabled;
+  videoSources: ISourceAttributes[] = [];
+  /** The source for the progress thumbnail */
+  thumbnailSrc?: string;
+  /** The time at which the progress cursor is currently pointing to */
+  thumbnailTime?: number;
+  /** The chapter that the progress cursor is currently pointing to */
+  thunmnailChapter?: string;
+  /** Is the track menu open */
+  trackMenuOpen = false;
   //#endregion
 
+  //#region PRIVATE PROPERTIES
+  /** The unsubscribe subject emits and complete on destroy */
   private unsubscribe$ = new Subject<void>();
+  /** The update Thumbnail subject */
   private updateThumbnail$ = new Subject<number>()
-
-  public thumbnailSrc?: string;
-  public thumbnailTime?: number;
-  public thunmnailChapter?: string;
-
-  public trackMenuOpen = false;
+  //#endregion
 
   //#region LIFECYCLE HOOKS
   ngOnInit(): void {
@@ -105,7 +120,11 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     this.video.nativeElement.currentTime = pos * this.video.nativeElement.duration;
   }
 
-  public selectSubtitles(track: ITrackAttributes | null): void {
+  /**
+   * Sets the video subtitle track to use if any was selected
+   * @param track The track to select
+   */
+  selectSubtitles(track: ITrackAttributes | null): void {
 
     for (let i = 0; i< this.video.nativeElement.textTracks.length; i++) {
       if (track === null) {
@@ -119,9 +138,30 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     this.trackMenuOpen = false;
   }
 
+  /**
+   * Sets the video in fullScreen mode
+   */
+  setFullScreen(): void {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      this.figure.nativeElement.requestFullscreen();
+    }
+  }
+
+  /**
+   * Advances the video by the specified number of seconds
+   * @param seconds The number of seconds to advance the video by
+   */
+  advanceVideoBy(seconds: number): void {
+    this.video.nativeElement.currentTime = this.video.nativeElement.currentTime + seconds;
+  }
   //#endregion
 
-  //#endregion PRIVATE METHODS
+  //#region PRIVATE METHODS
+  /**
+   * Handles the display of the progress thumbnail
+   */
   private handleThumbnailDisplay(): void {
     let video: HTMLVideoElement;
     let canvas: HTMLCanvasElement;
@@ -156,6 +196,9 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     })
   }
 
+  /**
+   * Handles the display of the video controls on mouse movement
+   */
   private handleMouseMovement(): void {
     fromEvent(this.figure.nativeElement, 'mousemove').pipe(
       tap(() => {
@@ -167,7 +210,6 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
       takeUntil(this.unsubscribe$)
     ).subscribe();
   }
-
   //#endregion
 
   //#region EVENT HANDLERS
@@ -201,21 +243,5 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     this.progress.nativeElement.parentElement?.style.setProperty('--hover-x', `${event.clientX - rect.left}px`);
     this.updateThumbnail$.next(Math.floor(pos * this.video.nativeElement.duration));
   }
-
   //#endregion
-
-
-  setFullScreen(): void {
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      this.figure.nativeElement.requestFullscreen();
-    }
-  }
-
-  advanceVideoBy(seconds: number): void {
-    this.video.nativeElement.currentTime = this.video.nativeElement.currentTime + seconds;
-  }
-
-
 }
