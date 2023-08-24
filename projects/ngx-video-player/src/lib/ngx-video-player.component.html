@@ -2,16 +2,40 @@
 <figure #figure [ngClass]="{'show-controls': mouseMoving || video.paused || video.ended}">
   <video #video
     id="video-tag"
-    [controls]="!browserSupportsVideo"
     preload="metadata"
+    [controls]="!browserSupportsVideo && _controls"
+    [crossOrigin]="crossOrigin"
+    [autoplay]="autoplay"
     [poster]="poster"
     (click)="toggleVideoPlayPause()"
-    (loadedmetadata)="onMetadataLodaded()"
-    (timeupdate)="onTimeUpdated()">
+    (loadedmetadata)="onMetadataLodaded($event)"
+    (loadeddata)="loadeddata.emit($event)"
+    (timeupdate)="timeupdate.emit($event)"
+    (ended)="ended.emit($event)"
+    (pause)="pause.emit($event)"
+    (play)="play.emit($event)"
+    (waiting)="waiting.emit($event)"
+    (error)="error.emit($event)"
+    (canplay)="canplay.emit($event)"
+    (canplaythrough)="canplaythrough.emit($event)"
+    (volumechange)="volumechange.emit($event)"
+    (ratechange)="ratechange.emit($event)"
+    (durationchange)="durationchange.emit($event)"
+    (seeked)="seeked.emit($event)"
+    (stalled)="stalled.emit($event)"
+    (suspend)="suspend.emit($event)"
+    (emptied)="emptied.emit($event)"
+    (abort)="abort.emit($event)"
+    (cuechange)="cuechange.emit($event)"
+    (enterpictureinpicture)="enterpictureinpicture.emit($event)"
+    (leavepictureinpicture)="leavepictureinpicture.emit($event)"
+    (fullscreenchange)="fullscreenchange.emit($event)"
+    (fullscreenerror)="fullscreenerror.emit($event)"
+    (seeking)="seeking.emit($event)">
     <source *ngFor="let source of videoSources" [src]="source.src" [type]="source.type">
     <track *ngFor="let track of tracks" [src]="track.src" [srclang]="track.srclang" [label]="track.label" [default]="track.default">
   </video>
-  <ul *ngIf="browserSupportsVideo" class="controls" aria-controls="video-tag">
+  <ul *ngIf="browserSupportsVideo && _controls" class="controls" aria-controls="video-tag">
     <li #progress
       tabindex="0"
       class="progress"

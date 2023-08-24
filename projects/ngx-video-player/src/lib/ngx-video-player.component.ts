@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+/* eslint-disable @angular-eslint/no-output-native */
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { MonoTypeOperatorFunction, Observable, Subject, debounceTime, fromEvent, merge, takeUntil, tap, throttleTime } from 'rxjs';
 
 export interface ISourceAttributes {
@@ -12,6 +13,10 @@ export interface ITrackAttributes {
   srclang: string;
   default?: boolean;
   label: string;
+}
+
+function coerceBooleanProperty(value: boolean | string): boolean {
+  return value != null && `${value}` !== 'false';
 }
 
 function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
@@ -39,8 +44,30 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   /** The sources for the video */
   @Input() set sources(sources: ISourceAttributes[]) {
     this.videoSources = sources;
-    this.video.nativeElement.load();
+    if (this.video) {
+      this.video.nativeElement.load();
+    }
   }
+  /** Show video controls */
+  _controls = false;
+  @Input() set controls(value: boolean | string) {
+    this._controls = coerceBooleanProperty(value);
+  }
+  /** Autoplay the video */
+  @Input() autoplay = false;
+  // TODO Implement Controlslist attribute
+  /** Expose video crossOrigin attribute */
+  @Input() crossOrigin?: 'anonymous' | 'use-credentials' | '';
+  /** Expose video height attribute */
+  @Input() height?: number;
+  /** Expose video width attribute */
+  @Input() width?: number;
+  /** Expose video loop attribute */
+  _loop = false;
+  @Input() set loop(value: boolean | string) {
+    this._loop = coerceBooleanProperty(value);
+  }
+  @Input() src?: string;
   //#endregion
 
   //#region VIEWCHILDREN
@@ -66,7 +93,63 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   thunmnailChapter?: string;
   /** Is the track menu open */
   trackMenuOpen = false;
+  /** Is the mouse moving (will be set to false only after specified delay) */
   mouseMoving = false;
+  /** Expose the video buffered attribute */
+  get buffered(): TimeRanges {
+    return this.video.nativeElement.buffered;
+  }
+  //#endregion
+
+  //#region EVENT EMITTERS
+  /** The video ended event */
+  @Output() ended = new EventEmitter<Event>();
+  /** The video pause event */
+  @Output() pause = new EventEmitter<Event>();
+  /** The video play event */
+  @Output() play = new EventEmitter<Event>();
+  /** The video time update event */
+  @Output() timeupdate = new EventEmitter<Event>();
+  /** The video volume change event */
+  @Output() volumechange = new EventEmitter<Event>();
+  /** The video waiting event */
+  @Output() waiting = new EventEmitter<Event>();
+  /** The video error event */
+  @Output() error = new EventEmitter<Event>();
+  /** The video loaded metadata event */
+  @Output() loadedmetadata = new EventEmitter<Event>();
+  /** The video loaded data event */
+  @Output() loadeddata = new EventEmitter<Event>();
+  /** The video can play event */
+  @Output() canplay = new EventEmitter<Event>();
+  /** The video can play through event */
+  @Output() canplaythrough = new EventEmitter<Event>();
+  /** The video duration change event */
+  @Output() durationchange = new EventEmitter<Event>();
+  /** The video rate change event */
+  @Output() ratechange = new EventEmitter<Event>();
+  /** The video seeked event */
+  @Output() seeked = new EventEmitter<Event>();
+  /** The video seeking event */
+  @Output() seeking = new EventEmitter<Event>();
+  /** The video stalled event */
+  @Output() stalled = new EventEmitter<Event>();
+  /** The video suspend event */
+  @Output() suspend = new EventEmitter<Event>();
+  /** The video emptied event */
+  @Output() emptied = new EventEmitter<Event>();
+  /** The video abort event */
+  @Output() abort = new EventEmitter<Event>();
+  /** The video cue change event */
+  @Output() cuechange = new EventEmitter<Event>();
+  /** The video enter picture in picture event */
+  @Output() enterpictureinpicture = new EventEmitter<Event>();
+  /** The video leave picture in picture event */
+  @Output() leavepictureinpicture = new EventEmitter<Event>();
+  /** The video fullscreen change event */
+  @Output() fullscreenchange = new EventEmitter<Event>();
+  /** The video fullscreen error event */
+  @Output() fullscreenerror = new EventEmitter<Event>();
   //#endregion
 
   //#region PRIVATE PROPERTIES
@@ -83,6 +166,15 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngAfterViewInit(): void {
     this.handleMouseMovement();
+    if (this.height) {
+      this.video.nativeElement.height = this.height;
+    }
+    if (this.width) {
+      this.video.nativeElement.width = this.width;
+    }
+    if (this.src) {
+      this.video.nativeElement.src = this.src;
+    }
   }
 
   ngOnDestroy(): void {
@@ -169,7 +261,8 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     let chapters: { title: string, time: number }[];
 
     this.updateThumbnail$.pipe(
-      throunceTime(100)
+      throunceTime(100),
+      takeUntil(this.unsubscribe$),
     ).subscribe((seconds) => {
       if (!video) {
         video = this.video.nativeElement.cloneNode(true) as HTMLVideoElement;
@@ -220,17 +313,14 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     this.video.nativeElement.volume = Number(volume);
   }
 
-  onMetadataLodaded(): void {
+  onMetadataLodaded(event: Event): void {
+    this.loadedmetadata.emit(event);
     this.chapters = this.chapters
       .sort((a, b) => a.time - b.time)
       .map((chapter, index) => ({
         ...chapter,
         duration: (this.chapters[index + 1]?.time  || this.video.nativeElement.duration) - chapter.time
       }));
-  }
-
-  onTimeUpdated(): void {
-    // Just need to call the event so that change detection triggers every when time is updated
   }
 
   /**
