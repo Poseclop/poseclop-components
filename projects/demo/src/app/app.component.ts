@@ -70,7 +70,7 @@ export class AppComponent {
       label: 'Español'
     }
   ]]
-  chapters = [
+  chapters = [[
     {
       title: 'Chapter 1',
       time: 0,
@@ -83,7 +83,20 @@ export class AppComponent {
       title: 'Chapter 3',
       time: 50
     }
-  ]
+  ],[
+    {
+      title: 'Chapter 1A',
+      time: 0,
+    },
+    {
+      title: 'Chapter 2A',
+      time: 50
+    },
+    {
+      title: 'Chapter 3A',
+      time: 110
+    }
+  ]]
   posters = ['assets/img/poster.jpg', 'assets/img/Sintel-Movie-1.jpg'];
 
   selectedComponent = new BehaviorSubject<null | typeof components[number]>('NgxVideoPlayerComponent');

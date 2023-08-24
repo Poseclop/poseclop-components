@@ -396,7 +396,7 @@
           [style.width.px]="1200"
           [style.aspect-ratio]="'16:9'"
           [poster]="posters[selectedVideo]"
-          [chapters]="chapters"
+          [chapters]="chapters[selectedVideo]"
           [tracks]="tracks[selectedVideo]"
           [sources]="sources[selectedVideo]">
         </ngx-video-player>
