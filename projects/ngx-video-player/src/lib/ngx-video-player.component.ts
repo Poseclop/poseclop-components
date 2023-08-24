@@ -66,6 +66,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   thunmnailChapter?: string;
   /** Is the track menu open */
   trackMenuOpen = false;
+  mouseMoving = false;
   //#endregion
 
   //#region PRIVATE PROPERTIES
@@ -202,11 +203,12 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   private handleMouseMovement(): void {
     fromEvent(this.figure.nativeElement, 'mousemove').pipe(
       tap(() => {
-        if (this.figure.nativeElement.classList.contains('show-controls')) return;
-        this.figure.nativeElement.classList.add('show-controls')
+        this.mouseMoving = true;
       }),
       debounceTime(1500),
-      tap(() => this.figure.nativeElement.classList.remove('show-controls')),
+      tap(() => {
+        this.mouseMoving = false;
+      }),
       takeUntil(this.unsubscribe$)
     ).subscribe();
   }

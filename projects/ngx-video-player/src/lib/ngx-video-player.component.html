@@ -1,5 +1,5 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<figure #figure>
+<figure #figure [ngClass]="{'show-controls': mouseMoving || video.paused || video.ended}">
   <video #video
     id="video-tag"
     [controls]="!browserSupportsVideo"
