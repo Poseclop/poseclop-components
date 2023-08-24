@@ -319,7 +319,6 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   onMetadataLodaded(event: Event): void {
-    console.warn('onMetadataLodaded', event)
     this.loadedmetadata.emit(event);
     this.chapters = this.chapters
       .sort((a, b) => a.time - b.time)
