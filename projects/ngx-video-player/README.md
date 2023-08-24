@@ -1,7 +1,16 @@
-# NgxVideoPlayer
-An angular video player component.
+<h1 align="center">Ngx-Video-Player</h1>
 
+<div align="center">
+  An angular video player component.
+</div>
+
+<details open="open">
+  <summary>Table of Contents</summary>
+  - [About](#about)
+</details>
 This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.0.
+
+## About
 
 ## Code scaffolding
 
