@@ -1,6 +1,6 @@
 /* eslint-disable @angular-eslint/no-output-native */
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { MonoTypeOperatorFunction, Observable, Subject, debounceTime, fromEvent, merge, takeUntil, tap, throttleTime } from 'rxjs';
+import { BehaviorSubject, MonoTypeOperatorFunction, Observable, Subject, combineLatest, debounceTime, fromEvent, merge, takeUntil, tap, throttleTime } from 'rxjs';
 
 export interface ISourceAttributes {
   src: string;
@@ -157,6 +157,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   private unsubscribe$ = new Subject<void>();
   /** The update Thumbnail subject */
   private updateThumbnail$ = new Subject<number>()
+  private resetThumbnail$ = new BehaviorSubject<boolean>(false);
   //#endregion
 
   //#region LIFECYCLE HOOKS
@@ -260,11 +261,11 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     let canvas: HTMLCanvasElement;
     let chapters: { title: string, time: number }[];
 
-    this.updateThumbnail$.pipe(
+    combineLatest([this.updateThumbnail$, this.resetThumbnail$]).pipe(
       throunceTime(100),
       takeUntil(this.unsubscribe$),
-    ).subscribe((seconds) => {
-      if (!video) {
+    ).subscribe(([seconds, resetThumbnail]) => {
+      if (!video || resetThumbnail) {
         video = this.video.nativeElement.cloneNode(true) as HTMLVideoElement;
         video.addEventListener('seeked', () => {
           canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
@@ -273,20 +274,24 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
         });
       }
 
-      if (!canvas) {
+      if (!canvas || resetThumbnail) {
         canvas = document.createElement("canvas");
         const ratio = this.video.nativeElement.videoWidth / this.video.nativeElement.videoHeight;
         canvas.width = 160;
         canvas.height = Math.floor(160 / ratio);
       }
 
-      if (!chapters) {
+      if (!chapters || resetThumbnail) {
         chapters = this.chapters ? [...this.chapters].sort((a, b) => b.time - a.time) : [];
       }
 
       this.thunmnailChapter = chapters.find((chapter) => chapter.time <= seconds)?.title;
       this.thumbnailTime = seconds;
       video.currentTime = seconds;
+
+      if (resetThumbnail) {
+        this.resetThumbnail$.next(false);
+      }
     })
   }
 
@@ -314,6 +319,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   onMetadataLodaded(event: Event): void {
+    console.warn('onMetadataLodaded', event)
     this.loadedmetadata.emit(event);
     this.chapters = this.chapters
       .sort((a, b) => a.time - b.time)
@@ -321,6 +327,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
         ...chapter,
         duration: (this.chapters[index + 1]?.time  || this.video.nativeElement.duration) - chapter.time
       }));
+    this.resetThumbnail$.next(true);
   }
 
   /**
