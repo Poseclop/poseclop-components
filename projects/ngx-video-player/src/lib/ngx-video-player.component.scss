@@ -12,7 +12,9 @@ figure {
 video {
   display: block;
   width: 100%;
+  height: 100%;
   background: #000;
+  object-fit: contain;
 }
 
 figure.show-controls .controls {
