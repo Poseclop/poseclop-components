@@ -103,7 +103,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   /** The video pause event */
   @Output() pause = new EventEmitter<Event>();
   /** The video play event */
-  @Output() playChange = new EventEmitter<Event>();
+  @Output() play = new EventEmitter<Event>();
   /** The video time update event */
   @Output() timeupdate = new EventEmitter<Event>();
   /** The video volume change event */
