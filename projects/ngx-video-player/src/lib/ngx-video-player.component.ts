@@ -2,12 +2,12 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { BehaviorSubject, MonoTypeOperatorFunction, Observable, Subject, combineLatest, debounceTime, fromEvent, merge, takeUntil, tap, throttleTime } from 'rxjs';
 
-export interface ISourceAttributes {
+export interface ISourceAttribute {
   src: string;
   type: string;
 }
 
-export interface ITrackAttributes {
+export interface ITrackAttribute {
   src: string;
   kind: string;
   srclang: string;
@@ -15,8 +15,10 @@ export interface ITrackAttributes {
   label: string;
 }
 
-function coerceBooleanProperty(value: boolean | string): boolean {
-  return value != null && `${value}` !== 'false';
+export interface IChapterAttribute {
+  title: string,
+  time: number,
+  duration?: number
 }
 
 function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
@@ -32,27 +34,21 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
 })
 export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   //#region INPUTS
+
   /** The poster that will be used for the video */
   @Input() poster = '';
   /** The chapters for the video */
-  @Input() chapters: { title: string, time: number, duration?: number }[] = [{
-    title: '',
-    time: 0
-  }];
+  @Input() chapters: IChapterAttribute[] = [{ title: '', time: 0 }];
   /** The tracks for the video */
-  @Input() tracks: ITrackAttributes[] = [];
+  @Input() tracks: ITrackAttribute[] = [];
   /** The sources for the video */
-  @Input() set sources(sources: ISourceAttributes[]) {
-    this.videoSources = sources;
+  @Input() set sources(sources: ISourceAttribute[]) {
+    this._videoSources = sources;
     if (this.video) {
       this.video.nativeElement.load();
     }
   }
-  /** Show video controls */
-  _controls = false;
-  @Input() set controls(value: boolean | string) {
-    this._controls = coerceBooleanProperty(value);
-  }
+  @Input() controls: boolean | string = false;
   /** Autoplay the video */
   @Input() autoplay = false;
   // TODO Implement Controlslist attribute
@@ -63,11 +59,11 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   /** Expose video width attribute */
   @Input() width?: number;
   /** Expose video loop attribute */
-  _loop = false;
-  @Input() set loop(value: boolean | string) {
-    this._loop = coerceBooleanProperty(value);
-  }
+  @Input() loop: boolean | string = false;
+  /** Use optionally to add a single source to the video */
   @Input() src?: string;
+  /** The volume of the video */
+  @Input() volume = 0.5;
   //#endregion
 
   //#region VIEWCHILDREN
@@ -84,7 +80,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   readonly browserSupportsVideo: boolean = !!document.createElement('video').canPlayType;
   /** Is fullScreen enabled */
   readonly fullScreenEnabled: boolean = !!document.fullscreenEnabled;
-  videoSources: ISourceAttributes[] = [];
+  _videoSources: ISourceAttribute[] = [];
   /** The source for the progress thumbnail */
   thumbnailSrc?: string;
   /** The time at which the progress cursor is currently pointing to */
@@ -107,7 +103,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   /** The video pause event */
   @Output() pause = new EventEmitter<Event>();
   /** The video play event */
-  @Output() play = new EventEmitter<Event>();
+  @Output() playChange = new EventEmitter<Event>();
   /** The video time update event */
   @Output() timeupdate = new EventEmitter<Event>();
   /** The video volume change event */
@@ -156,7 +152,8 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   /** The unsubscribe subject emits and complete on destroy */
   private unsubscribe$ = new Subject<void>();
   /** The update Thumbnail subject */
-  private updateThumbnail$ = new Subject<number>()
+  private updateThumbnail$ = new Subject<number>();
+  /** The reset Thumbnail subject */
   private resetThumbnail$ = new BehaviorSubject<boolean>(false);
   //#endregion
 
@@ -167,6 +164,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngAfterViewInit(): void {
     this.handleMouseMovement();
+
     if (this.height) {
       this.video.nativeElement.height = this.height;
     }
@@ -205,21 +203,18 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
-   * Sets the video time based on the progress bar position
-   * @param event The mouse event
+   * Sets the video time to the specified number of seconds
+   * @param seconds The number of seconds to set the video time to
    */
-  setVideoTime(event: MouseEvent): void {
-    const rect = this.progress.nativeElement.getBoundingClientRect();
-    const pos = (event.clientX - rect.left) / rect.width;
-    this.video.nativeElement.currentTime = pos * this.video.nativeElement.duration;
+  setVideoTime(seconds: number): void {
+    this.video.nativeElement.currentTime = seconds;
   }
 
   /**
    * Sets the video subtitle track to use if any was selected
    * @param track The track to select
    */
-  selectSubtitles(track: ITrackAttributes | null): void {
-
+  selectSubtitles(track: ITrackAttribute | null): void {
     for (let i = 0; i< this.video.nativeElement.textTracks.length; i++) {
       if (track === null) {
         this.video.nativeElement.textTracks[i].mode = 'hidden';
@@ -233,9 +228,9 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
-   * Sets the video in fullScreen mode
+   * Toggle the fullScreen mode
    */
-  setFullScreen(): void {
+  toggleFullScreen(): void {
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
@@ -248,7 +243,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
    * @param seconds The number of seconds to advance the video by
    */
   advanceVideoBy(seconds: number): void {
-    this.video.nativeElement.currentTime = this.video.nativeElement.currentTime + seconds;
+    this.setVideoTime(this.video.nativeElement.currentTime + seconds);
   }
   //#endregion
 
@@ -312,6 +307,16 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   }
   //#endregion
 
+
+  /**
+   * Coerces a data-bound value (typically a string) to a boolean.
+   * @param value The value to coerce
+   * @returns The coerced value
+   */
+  _coerceBooleanProperty(value: boolean | string): boolean {
+    return value != null && `${value}` !== 'false';
+  }
+
   //#region EVENT HANDLERS
   onVolumeChange(event: Event): void {
     const volume = (event.target as HTMLInputElement).value;
@@ -340,6 +345,16 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     const pos = (event.clientX - rect.left) / rect.width;
     this.progress.nativeElement.parentElement?.style.setProperty('--hover-x', `${event.clientX - rect.left}px`);
     this.updateThumbnail$.next(Math.floor(pos * this.video.nativeElement.duration));
+  }
+
+  /**
+   * Sets the video time based on the progress bar position
+   * @param event The mouse event
+   */
+  onProgressBarClick(event: MouseEvent): void {
+    const rect = this.progress.nativeElement.getBoundingClientRect();
+    const pos = (event.clientX - rect.left) / rect.width;
+    this.setVideoTime(pos * this.video.nativeElement.duration);
   }
   //#endregion
 }
