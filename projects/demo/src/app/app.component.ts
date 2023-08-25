@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { ISourceAttributes } from 'ngx-video-player';
+import { IChapterAttribute, ISourceAttribute, ITrackAttribute } from 'ngx-video-player';
 
 
 const components = [
@@ -14,7 +14,7 @@ const components = [
 })
 export class AppComponent {
   selectedVideo = 0;
-  sources: ISourceAttributes[][] = [[
+  sources: ISourceAttribute[][] = [[
     {
       src: 'assets/video/tears-of-steel-battle-clip-medium.mp4',
       type: 'video/mp4',
@@ -37,20 +37,7 @@ export class AppComponent {
       type: 'video/webm',
     }
   ]];
-  tracks = [[
-    {
-      src: 'assets/vtt/TOS-en.vtt',
-      kind: 'subtitles',
-      srclang: 'en',
-      label: 'English'
-    },
-    {
-      src: 'assets/vtt/TOS-fr-Goofy.vtt',
-      kind: 'subtitles',
-      srclang: 'fr',
-      label: 'Français'
-    },
-  ],[
+  tracks: ITrackAttribute[][] = [[],[
     {
       src: 'assets/vtt/sintel-en.vtt',
       kind: 'subtitles',
@@ -70,7 +57,7 @@ export class AppComponent {
       label: 'Español'
     }
   ]]
-  chapters = [[
+  chapters: IChapterAttribute[][] = [[
     {
       title: 'Chapter 1',
       time: 0,

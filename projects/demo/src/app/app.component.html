@@ -393,8 +393,7 @@
       <ng-container *ngSwitchCase="'NgxVideoPlayerComponent'">
         <ngx-video-player
           controls
-          [style.width.px]="1200"
-          [style.aspect-ratio]="'16:9'"
+          style="width: 800px; height: 800px;"
           [poster]="posters[selectedVideo]"
           [chapters]="chapters[selectedVideo]"
           [tracks]="tracks[selectedVideo]"
