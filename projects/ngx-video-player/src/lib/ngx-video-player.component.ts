@@ -1,5 +1,5 @@
 /* eslint-disable @angular-eslint/no-output-native */
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, MonoTypeOperatorFunction, Observable, Subject, combineLatest, debounceTime, fromEvent, merge, takeUntil, tap, throttleTime } from 'rxjs';
 
 export interface ISourceAttribute {
@@ -27,6 +27,9 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
       .pipe(throttleTime(0, undefined, { leading: true, trailing: false }));
 }
 
+/**
+ * A video player component for Angular
+ */
 @Component({
   selector: 'ngx-video-player',
   templateUrl: './ngx-video-player.component.html',
@@ -35,8 +38,8 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
 export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   //#region INPUTS
 
-  /** The poster that will be used for the video */
-  @Input() poster = '';
+  /** The source of the poster that will be used for the video */
+  @Input() posterSrc = '';
   /** The chapters for the video */
   @Input() chapters: IChapterAttribute[] = [{ title: '', time: 0 }];
   /** The tracks for the video */
@@ -64,6 +67,14 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() src?: string;
   /** The volume of the video */
   @Input() volume = 0.5;
+  /** Play/Pause the video */
+  @Input() set play(value: boolean) {
+    if (value) {
+      this.video.nativeElement.play();
+    } else {
+      this.video.nativeElement.pause();
+    }
+  }
   //#endregion
 
   //#region VIEWCHILDREN
@@ -80,6 +91,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   readonly browserSupportsVideo: boolean = !!document.createElement('video').canPlayType;
   /** Is fullScreen enabled */
   readonly fullScreenEnabled: boolean = !!document.fullscreenEnabled;
+  /** The video sources (Used only internaly. Use [sources] to update video sources when interacting with the component) */
   _videoSources: ISourceAttribute[] = [];
   /** The source for the progress thumbnail */
   thumbnailSrc?: string;
@@ -95,57 +107,6 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   get buffered(): TimeRanges {
     return this.video.nativeElement.buffered;
   }
-  //#endregion
-
-  //#region EVENT EMITTERS
-  /** The video ended event */
-  @Output() ended = new EventEmitter<Event>();
-  /** The video pause event */
-  @Output() pause = new EventEmitter<Event>();
-  /** The video play event */
-  @Output() play = new EventEmitter<Event>();
-  /** The video time update event */
-  @Output() timeupdate = new EventEmitter<Event>();
-  /** The video volume change event */
-  @Output() volumechange = new EventEmitter<Event>();
-  /** The video waiting event */
-  @Output() waiting = new EventEmitter<Event>();
-  /** The video error event */
-  @Output() error = new EventEmitter<Event>();
-  /** The video loaded metadata event */
-  @Output() loadedmetadata = new EventEmitter<Event>();
-  /** The video loaded data event */
-  @Output() loadeddata = new EventEmitter<Event>();
-  /** The video can play event */
-  @Output() canplay = new EventEmitter<Event>();
-  /** The video can play through event */
-  @Output() canplaythrough = new EventEmitter<Event>();
-  /** The video duration change event */
-  @Output() durationchange = new EventEmitter<Event>();
-  /** The video rate change event */
-  @Output() ratechange = new EventEmitter<Event>();
-  /** The video seeked event */
-  @Output() seeked = new EventEmitter<Event>();
-  /** The video seeking event */
-  @Output() seeking = new EventEmitter<Event>();
-  /** The video stalled event */
-  @Output() stalled = new EventEmitter<Event>();
-  /** The video suspend event */
-  @Output() suspend = new EventEmitter<Event>();
-  /** The video emptied event */
-  @Output() emptied = new EventEmitter<Event>();
-  /** The video abort event */
-  @Output() abort = new EventEmitter<Event>();
-  /** The video cue change event */
-  @Output() cuechange = new EventEmitter<Event>();
-  /** The video enter picture in picture event */
-  @Output() enterpictureinpicture = new EventEmitter<Event>();
-  /** The video leave picture in picture event */
-  @Output() leavepictureinpicture = new EventEmitter<Event>();
-  /** The video fullscreen change event */
-  @Output() fullscreenchange = new EventEmitter<Event>();
-  /** The video fullscreen error event */
-  @Output() fullscreenerror = new EventEmitter<Event>();
   //#endregion
 
   //#region PRIVATE PROPERTIES
@@ -208,6 +169,14 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
    */
   setVideoTime(seconds: number): void {
     this.video.nativeElement.currentTime = seconds;
+  }
+
+  /**
+   * Sets the video volume to the specified number
+   * @param volume The volume to set the video to
+   */
+  setVideoVolume(volume: number): void {
+    this.video.nativeElement.volume = volume;
   }
 
   /**
@@ -318,13 +287,20 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   //#region EVENT HANDLERS
+  /**
+   * Called when the value of volume input is changed
+   * @param event The event
+   */
   onVolumeChange(event: Event): void {
     const volume = (event.target as HTMLInputElement).value;
-    this.video.nativeElement.volume = Number(volume);
+    this.setVideoVolume(+volume);
   }
 
-  onMetadataLodaded(event: Event): void {
-    this.loadedmetadata.emit(event);
+  /**
+   * Called when the metadata of the video is loaded
+   */
+  onMetadataLodaded(): void {
+    // Sort chapters by time and calculate duration
     this.chapters = this.chapters
       .sort((a, b) => a.time - b.time)
       .map((chapter, index) => ({
