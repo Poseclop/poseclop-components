@@ -21,14 +21,13 @@
 This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.0.
 
 ## About
-<img align="center" src="./img/player-ui.png"></img>
+<img align="center" src="https://github.com/Poseclop/poseclop-components/blob/master/projects/ngx-video-player/img/player-ui.png"></img>
 
 ### Main features
-- Lightweight ??
-- Default controls managing all interactions with the video
+- Lightweight
+- Interface intended to stick to the HTML5 video element
 - Thumbnail on the video progress, that shows a snapshot, time and chapter for pointed position
 - Expose all video attributes
-- Expose all video events through event emitters
 - Manage the video displayed using [sources] input
 - Manage the subtitles using [tracks] input
 - Use the [chapters] input to display current media chapter
