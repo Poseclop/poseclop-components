@@ -10,6 +10,7 @@
 - [About](#about)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
   - [Usage](#usage)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
@@ -66,7 +67,15 @@ export class AppModule { }
 <ngx-video-player
   controls
   [poster]="/assets/img/myPoster"
-  [chapters]="{ title: 'Chapter 1'; time: 0 }"
+  [chapters]="[
+    {
+      title: 'Chapter 1';
+      time: 0
+    },
+    {
+      title: 'Chapter 2';
+      time: 10
+    }]"
   [tracks]="[{
       src: 'assets/vtt/TOS-en.vtt',
       kind: 'subtitles',
@@ -91,6 +100,58 @@ export class AppModule { }
   ]">
 </ngx-video-player>
 ```
+### Usage
+#### Inputs
+| Input | Type | Default | Description |
+| --- | --- | --- | --- |
+| controls | boolean | true | Display the video controls |
+| posterSrc | string | null | URL of the poster image |
+| sources | ISourceAttribute[] | null | List of video sources |
+| tracks | ITrackAttribute[] | null | List of video tracks |
+| chapters | IChapterAttribute[] | null | List of video chapters |
+| autoplay | boolean | false | Autoplay the video |
+| loop | boolean | false | Loop the video |
+| width | string | '100%' | Width of the video |
+| height | string | '100%' | Height of the video |
+| crossOrigin | string | null | Cross origin of the video |
+| volume | number | 1 | Volume of the video |
+
+#### Attributes
+| Attribute | Type | Description |
+| --- | --- | --- |
+| video | HTMLVideoElement | HTML5 video element |
+
+#### Methods
+| Method | Description |
+| --- | --- |
+| toogleVideoPlayPause() | Toogle the video play/pause |
+| stopVideo() | Stop the video |
+| setVideoTime(seconds: number) | Set the video time |
+| setVideoVolume(volume: number) | Set the video volume |
+| selectSubtitles(track: ITrackAttributes) | Select the subtitles track |
+| toggleFullScreen() | Toogle the video fullscreen |
+| advanceVideoBy(seconds: number) | Advance the video by the given seconds |
+
+#### Interfaces
+##### ISourceAttribute
+| Attribute | Type | Description |
+| --- | --- | --- |
+| src | string | URL of the video source |
+| type | string | Type of the video source |
+
+##### ITrackAttribute
+| Attribute | Type | Description |
+| --- | --- | --- |
+| src | string | URL of the track |
+| kind | string | Kind of the track |
+| srclang | string | Language of the track |
+| label | string | Label of the track |
+
+##### IChapterAttribute
+| Attribute | Type | Description |
+| --- | --- | --- |
+| title | string | Title of the chapter |
+| time | number | Start time of the chapter in seconds |
 
 ## Build
 Run `ng build ngx-video-player` to build the project. The build artifacts will be stored in the `dist/` directory.
