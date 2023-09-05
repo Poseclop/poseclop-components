@@ -1,7 +1,7 @@
 <h1 align="center">Ngx-Video-Player</h1>
 
 <div align="center">
-  An angular video player component.
+  A lightweight angular video player component that try to emulate youtube video player.
 </div>
 
 <details open="open">
@@ -25,10 +25,9 @@ This library was generated with [Angular CLI](https://github.com/angular/angular
 <img align="center" src="https://github.com/Poseclop/poseclop-components/blob/master/projects/ngx-video-player/img/player-ui.png"></img>
 
 ### Main features
-- Lightweight
-- Interface intended to stick to the HTML5 video element
-- Thumbnail on the video progress, that shows a snapshot, time and chapter for pointed position
-- Expose all video attributes
+- Lightweight, no nonsense video player for angular
+- Emulate the youtube video progress bar. Can show chapters and a thumbnail for hovered video time.
+- Interface intended to stick to the HTML5 video element (as much as possible, suggestions are welcome and check roadmap for features to come)
 - Manage the video displayed using [sources] input
 - Manage the subtitles using [tracks] input
 - Use the [chapters] input to display current media chapter
@@ -152,6 +151,27 @@ export class AppModule { }
 | --- | --- | --- |
 | title | string | Title of the chapter |
 | time | number | Start time of the chapter in seconds |
+
+## Roadmap
+This component is still in development and some features are still missing. Here is a list of features to come:
+- [ ] Add more tests
+- [ ] Add more documentation
+- [ ] Add more examples
+- [ ] Use the base video attributes to make the interface seemless with a <video> html5 tag
+- [ ] Optimize performance
+- [ ] Add more features:
+  - [ ] Add more controls
+  - [ ] Add more events
+  - [ ] Add more attributes
+  - [ ] Add more methods
+  - [ ] Add more inputs
+  - [ ] Add more outputs
+  - [ ] Add skip by X seconds buttons
+  - [ ] Handle the autoSwitch to fullScreen (possible?)
+
+## Contributing
+So yeah all help is welcome. I'm kind of new to the dev community but I'll do my best to ensure new contrivutions are dully treated and hilighted.
+Best way to test your contrivutions is to run `ng serve` to launch the default project (demo application) and 'ng build <library-name> --watch' to build the library on the fly.
 
 ## Build
 Run `ng build ngx-video-player` to build the project. The build artifacts will be stored in the `dist/` directory.
