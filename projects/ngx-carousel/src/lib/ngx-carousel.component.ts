@@ -12,9 +12,9 @@ import { BehaviorSubject, Observable, Subject, combineLatest, delay, filter, fro
       </div>
     </ng-container>
 
-    <div class="page-buttons">
+    <div class="page-buttons" [ngClass]="{'vertical': _scrollDirection === 'vertical'}">
       <button class="arrow-button" (click)="previous()">
-        <svg xmlns="http://www.w3.org/2000/svg" height="14px" viewBox="0 0 24 24" width="14px" fill="#fff">
+        <svg xmlns="http://www.w3.org/2000/svg" height="14px" viewBox="0 0 24 24" width="14px" fill="#fff" [ngStyle]="{'transform': _scrollDirection === 'vertical' ? 'rotate(90deg)' : null}">
           <path d="M0 0h24v24H0V0z" fill="none" opacity=".87"/>
           <path d="M17.51 3.87L15.73 2.1 5.84 12l9.9 9.9 1.77-1.77L9.38 12l8.13-8.13z"/>
         </svg>
@@ -27,7 +27,7 @@ import { BehaviorSubject, Observable, Subject, combineLatest, delay, filter, fro
         [ngClass]="{'selected': _currentItemIndex$.value === i}">
       </button>
       <button class="arrow-button" (click)="next()">
-        <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="14px" viewBox="0 0 24 24" width="14px" fill="#fff">
+        <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="14px" viewBox="0 0 24 24" width="14px" fill="#fff" [ngStyle]="{'transform': _scrollDirection === 'vertical' ? 'rotate(90deg)' : null}">
           <g><path d="M0,0h24v24H0V0z" fill="none"/></g>
           <g><polygon points="6.23,20.23 8,22 18,12 8,2 6.23,3.77 14.46,12"/></g>
         </svg>
@@ -62,7 +62,15 @@ import { BehaviorSubject, Observable, Subject, combineLatest, delay, filter, fro
       left: 50%;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+
+      &.vertical {
+        flex-direction: column;
+        bottom: 50%;
+        right: 12px;
+        left: unset;
+        transform: translateY(50%);
+      }
 
       button {
         display: inline-block;
@@ -99,6 +107,8 @@ import { BehaviorSubject, Observable, Subject, combineLatest, delay, filter, fro
     trigger('slide', [
       state('left', style({ transform: 'translateX(0)' })),
       state('right', style({ transform: 'translateX(0)' })),
+      state('top', style({ transform: 'translateY(0)' })),
+      state('bottom', style({ transform: 'translateY(0)' })),
       transition('void => left', [
         style({ transform: 'translateX(100%)' }),
         animate('0.5s ease-in-out')
@@ -112,6 +122,20 @@ import { BehaviorSubject, Observable, Subject, combineLatest, delay, filter, fro
       ]),
       transition('right => void', [
         animate('0.5s ease-in-out', style({ transform: 'translateX(100%)' }))
+      ]),
+      transition('void => top', [
+        style({ transform: 'translateY(100%)' }),
+        animate('0.5s ease-in-out')
+      ]),
+      transition('void => bottom', [
+        style({ transform: 'translateY(-100%)' }),
+        animate('0.5s ease-in-out')
+      ]),
+      transition('top => void', [
+        animate('0.5s ease-in-out', style({ transform: 'translateY(-100%)' }))
+      ]),
+      transition('bottom => void', [
+        animate('0.5s ease-in-out', style({ transform: 'translateY(100%)' }))
       ]),
     ]),
   ],
@@ -127,15 +151,22 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
     this._scrollSensitivity = (1 - value) * 1000;
   }
 
+  @Input()
+  public set scrollDirection(value: 'horizontal' | 'vertical') {
+    this._scrollDirection = value;
+    this.slideDirection = value === 'horizontal' ? 'left' : 'top';
+  }
+
   private _scrollSensitivity = 500;
   private _unsubscribeAll = new Subject<void>();
   private _animationRunning = false;
 
+  public _scrollDirection: 'horizontal' | 'vertical' = 'horizontal';
   public _animationDisabled = true;
   public _currentItemIndex$ = new BehaviorSubject<number>(0);
 
   public currentItem$!: Observable<TemplateRef<unknown>>;
-  public slideDirection: 'left' | 'right' = 'left';
+  public slideDirection: 'left' | 'right' | 'top' | 'bottom' = 'left';
 
   constructor(private _elementRef: ElementRef) { }
 
@@ -147,8 +178,6 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
       timeInterval(),
       takeUntil(this._unsubscribeAll)
     ).subscribe(event => {
-
-      console.warn((event.value as WheelEvent).deltaY)
 
       if (event.interval > 1000) {
         accumulatedDelta = 0;
@@ -189,7 +218,7 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
 
   next(): void {
     this._animationRunning = true;
-    this.slideDirection = 'left';
+    this.slideDirection = this._scrollDirection === 'horizontal' ? 'left' : 'top';
     const nextIndex = this._currentItemIndex$.value + 1 > this.items.length - 1 ? 0 : this._currentItemIndex$.value + 1;
     setTimeout(() => {
       this._currentItemIndex$.next(nextIndex);
@@ -202,7 +231,7 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
 
   previous(): void {
     this._animationRunning = true;
-    this.slideDirection = 'right';
+    this.slideDirection = this._scrollDirection === 'horizontal' ? 'right' : 'bottom';
     setTimeout(() => {
       const nextIndex = this._currentItemIndex$.value - 1 < 0 ? this.items.length - 1 : this._currentItemIndex$.value - 1;
       this._currentItemIndex$.next(nextIndex);
@@ -215,7 +244,9 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
 
   goTo(index: number): void {
     this._animationRunning = true;
-    this.slideDirection = index > this._currentItemIndex$.value ? 'left' : 'right';
+    this.slideDirection = index > this._currentItemIndex$.value
+      ? this._scrollDirection === 'horizontal' ? 'left' : 'top'
+      : this.scrollDirection === 'horizontal' ? 'right' : 'bottom';
     setTimeout(() => {
       this._currentItemIndex$.next(index);
     }, 0);
