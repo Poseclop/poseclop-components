@@ -12,6 +12,12 @@
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "paths": {
+      "ngx-carousel": [
+        "dist/ngx-carousel"
+      ],
+      "ngx-three-dimension-carousel": [
+        "dist/ngx-three-dimension-carousel"
+      ],
       "ngx-video-player": [
         "dist/ngx-video-player"
       ]

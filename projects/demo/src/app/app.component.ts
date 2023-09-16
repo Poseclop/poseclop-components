@@ -4,7 +4,9 @@ import { IChapterAttribute, ISourceAttribute, ITrackAttribute } from 'ngx-video-
 
 
 const components = [
-  'NgxVideoPlayerComponent'
+  'NgxVideoPlayerComponent',
+  'NgxCarouselComponent',
+  'NgxThreeDimensionCarouselComponent'
 ] as const;
 
 @Component({
@@ -86,6 +88,6 @@ export class AppComponent {
   ]]
   posters = ['assets/img/poster.jpg', 'assets/img/Sintel-Movie-1.jpg'];
 
-  selectedComponent = new BehaviorSubject<null | typeof components[number]>('NgxVideoPlayerComponent');
+  selectedComponent = new BehaviorSubject<null | typeof components[number]>('NgxCarouselComponent');
 
 }
