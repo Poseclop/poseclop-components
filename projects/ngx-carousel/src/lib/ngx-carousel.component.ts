@@ -143,6 +143,10 @@ import { BehaviorSubject, Observable, Subject, combineLatest, delay, filter, fro
 export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy {
   @ContentChildren(NgxCarouselItemDirective) items!: QueryList<NgxCarouselItemDirective>;
 
+  /**
+   * The sensitivity of the scroll event to trigger a slide.
+   *
+   */
   @Input()
   public set scrollSensitivity(value: number) {
     if (value <= 0 || value > 1) {
@@ -151,26 +155,59 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
     this._scrollSensitivity = (1 - value) * 1000;
   }
 
+  /**
+   * The direction of the carousel.
+   */
   @Input()
   public set scrollDirection(value: 'horizontal' | 'vertical') {
     this._scrollDirection = value;
     this.slideDirection = value === 'horizontal' ? 'left' : 'top';
   }
 
+  /**
+   * The sensitivity of the scroll event to trigger a slide.
+   */
   private _scrollSensitivity = 500;
+  /**
+   * Subject that emits when the component is destroyed.
+   */
   private _unsubscribeAll = new Subject<void>();
+  /**
+   * Whether the animation is running.
+   */
   private _animationRunning = false;
 
+  /**
+   * The direction of the carousel.
+   */
   public _scrollDirection: 'horizontal' | 'vertical' = 'horizontal';
+  /**
+   * Whether the animation is disabled.
+   */
   public _animationDisabled = true;
+  /**
+   * The index of the current item.
+   */
   public _currentItemIndex$ = new BehaviorSubject<number>(0);
-
+  /**
+   * The current item.
+   */
   public currentItem$!: Observable<TemplateRef<unknown>>;
+  /**
+   * The direction of the slide.
+   */
   public slideDirection: 'left' | 'right' | 'top' | 'bottom' = 'left';
 
   constructor(private _elementRef: ElementRef) { }
 
   ngOnInit(): void {
+    this.handleWheelEvent();
+  }
+
+  /**
+   * Watch the wheel event and slide the carousel accordingly.
+   */
+  private handleWheelEvent() {
     let accumulatedDelta = 0;
 
     fromEvent(this._elementRef.nativeElement, 'wheel').pipe(
@@ -190,17 +227,16 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
         if (accumulatedDelta > 0) {
           this.next();
         } else {
-          this.previous()
+          this.previous();
         }
         accumulatedDelta = 0;
       }
     });
   }
 
-
   ngAfterContentInit(): void {
     this.currentItem$ = combineLatest([
-      (this.items.changes).pipe(startWith(this.items)),
+      this.items.changes.pipe(startWith(this.items)),
       this._currentItemIndex$
     ]).pipe(
       map(([items, index]) => items.get(index).templateRef),
@@ -216,6 +252,9 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
     this._unsubscribeAll.complete();
   }
 
+  /**
+   * Go to the next item in the carousel.
+   */
   next(): void {
     this._animationRunning = true;
     this.slideDirection = this._scrollDirection === 'horizontal' ? 'left' : 'top';
@@ -229,6 +268,9 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
     }, 500);
   }
 
+  /**
+   * Go to the previous item in the carousel.
+   */
   previous(): void {
     this._animationRunning = true;
     this.slideDirection = this._scrollDirection === 'horizontal' ? 'right' : 'bottom';
@@ -242,6 +284,10 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
     }, 500);
   }
 
+  /**
+   * Go to the item at the specified index.
+   * @param index The index of the item to go to.
+   */
   goTo(index: number): void {
     this._animationRunning = true;
     this.slideDirection = index > this._currentItemIndex$.value
