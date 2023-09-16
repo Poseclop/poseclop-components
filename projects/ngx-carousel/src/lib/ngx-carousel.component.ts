@@ -292,7 +292,7 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
     this._animationRunning = true;
     this.slideDirection = index > this._currentItemIndex$.value
       ? this._scrollDirection === 'horizontal' ? 'left' : 'top'
-      : this.scrollDirection === 'horizontal' ? 'right' : 'bottom';
+      : this._scrollDirection === 'horizontal' ? 'right' : 'bottom';
     setTimeout(() => {
       this._currentItemIndex$.next(index);
     }, 0);
