@@ -1,13 +1,13 @@
-import { AfterContentInit, Component, ContentChildren, ElementRef, Input, OnDestroy, OnInit, QueryList, TemplateRef } from '@angular/core';
+import { AfterContentInit, Component, ContentChildren, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, QueryList, TemplateRef } from '@angular/core';
 import { NgxCarouselItemDirective } from './ngx-carousel-item.directive';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { BehaviorSubject, Observable, Subject, combineLatest, delay, filter, fromEvent, map, startWith, takeUntil, tap, timeInterval } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, Subscription, combineLatest, delay, filter, fromEvent, interval, map, startWith, takeUntil, tap, timeInterval } from 'rxjs';
 
 @Component({
   selector: 'ngx-carousel',
   template: `
     <ng-container *ngFor="let item of items; let i = index">
-      <div class="carousel-item" [@slide]="slideDirection" *ngIf="_currentItemIndex$.value === i" [@.disabled]="_animationDisabled">
+      <div class="carousel-item" [@slide]="{value: slideDirection, params: { scrollSpeed: scrollTime}}" *ngIf="_currentItemIndex$.value === i" [@.disabled]="_animationDisabled">
         <ng-container [ngTemplateOutlet]="currentItem$ | async"></ng-container>
       </div>
     </ng-container>
@@ -111,31 +111,31 @@ import { BehaviorSubject, Observable, Subject, combineLatest, delay, filter, fro
       state('bottom', style({ transform: 'translateY(0)' })),
       transition('void => left', [
         style({ transform: 'translateX(100%)' }),
-        animate('0.5s ease-in-out')
+        animate('{{scrollTime}}ms ease-in-out')
       ]),
       transition('void => right', [
         style({ transform: 'translateX(-100%)' }),
-        animate('0.5s ease-in-out')
+        animate('{{scrollTime}}ms ease-in-out')
       ]),
       transition('left => void', [
-        animate('0.5s ease-in-out', style({ transform: 'translateX(-100%)' }))
+        animate('{{scrollTime}}ms ease-in-out', style({ transform: 'translateX(-100%)' }))
       ]),
       transition('right => void', [
-        animate('0.5s ease-in-out', style({ transform: 'translateX(100%)' }))
+        animate('{{scrollTime}}ms ease-in-out', style({ transform: 'translateX(100%)' }))
       ]),
       transition('void => top', [
         style({ transform: 'translateY(100%)' }),
-        animate('0.5s ease-in-out')
+        animate('{{scrollTime}}ms ease-in-out')
       ]),
       transition('void => bottom', [
         style({ transform: 'translateY(-100%)' }),
-        animate('0.5s ease-in-out')
+        animate('{{scrollTime}}ms ease-in-out')
       ]),
       transition('top => void', [
-        animate('0.5s ease-in-out', style({ transform: 'translateY(-100%)' }))
+        animate('{{scrollTime}}ms ease-in-out', style({ transform: 'translateY(-100%)' }))
       ]),
       transition('bottom => void', [
-        animate('0.5s ease-in-out', style({ transform: 'translateY(100%)' }))
+        animate('{{scrollTime}}ms ease-in-out', style({ transform: 'translateY(100%)' }))
       ]),
     ]),
   ],
@@ -143,9 +143,11 @@ import { BehaviorSubject, Observable, Subject, combineLatest, delay, filter, fro
 export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy {
   @ContentChildren(NgxCarouselItemDirective) items!: QueryList<NgxCarouselItemDirective>;
 
+  @Input()
+  public scrollTime = 500;
+
   /**
    * The sensitivity of the scroll event to trigger a slide.
-   *
    */
   @Input()
   public set scrollSensitivity(value: number) {
@@ -163,6 +165,29 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
     this._scrollDirection = value;
     this.slideDirection = value === 'horizontal' ? 'left' : 'top';
   }
+
+  /**
+   * The interval in milliseconds to automatically go to the next item.
+   */
+  @Input()
+  public set autoPlay(value: number) {
+    let intervalSub: Subscription | undefined;
+
+    if (intervalSub && !intervalSub.closed) {
+      intervalSub.unsubscribe();
+    }
+
+    if (value > 0) {
+      intervalSub = interval(value).subscribe(() => {
+        this.next();
+      });
+    }
+  }
+
+  /**
+   * Event emitted when the carousel page changes.
+   */
+  @Output() pageChange = new EventEmitter<number>();
 
   /**
    * The sensitivity of the scroll event to trigger a slide.
@@ -223,7 +248,6 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
       }
 
       if (Math.abs(accumulatedDelta) >= this._scrollSensitivity) {
-        console.warn(accumulatedDelta);
         if (accumulatedDelta > 0) {
           this.next();
         } else {
@@ -242,6 +266,7 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
       map(([items, index]) => items.get(index).templateRef),
       delay(0),
       tap(() => {
+        // Enable the animation after the first item has been rendered.
         this._animationDisabled = false;
       })
     );
@@ -256,32 +281,18 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
    * Go to the next item in the carousel.
    */
   next(): void {
-    this._animationRunning = true;
     this.slideDirection = this._scrollDirection === 'horizontal' ? 'left' : 'top';
     const nextIndex = this._currentItemIndex$.value + 1 > this.items.length - 1 ? 0 : this._currentItemIndex$.value + 1;
-    setTimeout(() => {
-      this._currentItemIndex$.next(nextIndex);
-    }, 0);
-
-    setTimeout(() => {
-      this._animationRunning = false;
-    }, 500);
+    this.triggerAnimation(nextIndex);
   }
 
   /**
    * Go to the previous item in the carousel.
    */
   previous(): void {
-    this._animationRunning = true;
     this.slideDirection = this._scrollDirection === 'horizontal' ? 'right' : 'bottom';
-    setTimeout(() => {
-      const nextIndex = this._currentItemIndex$.value - 1 < 0 ? this.items.length - 1 : this._currentItemIndex$.value - 1;
-      this._currentItemIndex$.next(nextIndex);
-    }, 0);
-
-    setTimeout(() => {
-      this._animationRunning = false;
-    }, 500);
+    const nextIndex = this._currentItemIndex$.value - 1 < 0 ? this.items.length - 1 : this._currentItemIndex$.value - 1;
+    this.triggerAnimation(nextIndex);
   }
 
   /**
@@ -289,16 +300,29 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
    * @param index The index of the item to go to.
    */
   goTo(index: number): void {
-    this._animationRunning = true;
     this.slideDirection = index > this._currentItemIndex$.value
       ? this._scrollDirection === 'horizontal' ? 'left' : 'top'
       : this._scrollDirection === 'horizontal' ? 'right' : 'bottom';
+    this.triggerAnimation(index);
+  }
+
+  /**
+   * Trigger the animation to go to the item at the specified index.
+   * @param index The index of the item to go to.
+   */
+  private triggerAnimation(index: number): void {
+    // Mark the animation as running to prevent multiple animations at the same time.
+    this._animationRunning = true;
+
+    // Set timeout to trigger the animation after slide direction has been updated in change detection cycle.
     setTimeout(() => {
       this._currentItemIndex$.next(index);
     }, 0);
 
+    // Set timeout to mark the animation as not running after the animation has finished.
     setTimeout(() => {
       this._animationRunning = false;
-    }, 500);
+      this.pageChange.emit(index);
+    }, this.scrollTime);
   }
 }

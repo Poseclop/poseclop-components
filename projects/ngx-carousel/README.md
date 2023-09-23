@@ -1,24 +1,90 @@
-# NgxCarousel
+<h1 align="center">Ngx-Carousel</h1>
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.0.
+<div align="center">
+  A lightweight angular carousel component.
+</div>
 
-## Code scaffolding
+<details open="open">
+<summary>Table of Contents</summary>
 
-Run `ng generate component component-name --project ngx-carousel` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project ngx-carousel`.
-> Note: Don't forget to add `--project ngx-carousel` or else it will be added to the default project in your `angular.json` file. 
+- [About](#about)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Usage](#usage)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Support](#support)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+</details>
 
-## Build
+## About
+### Main features
+- Lightweight, no nonsense carousel component
+- Can be set to scroll vertically or horizontally
+- Can use the autoplay attribute to scroll automatically
 
-Run `ng build ngx-carousel` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Getting Started
+### Prerequisites
+This component is only available for [Angular](https://www.angular.io) projects.
+### Installation
+1. Install the package
+```sh
+npm install @Poseclop/ngx-carousel
+```
+`or`
+```sh
+yarn add @Poseclop/ngx-carousel
+```
+2. Import the module in your application
+```ts
+@NgModule({
+  declarations: [
+    AppComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    NgxCarouselModule,
+    ...
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+```
+3. Add the component in your application. The carousel will display all the children of the component.
+```ts
+<ngx-carousel [autoplay]="2000" [scrollDirection]="'horizontal'">
+  <ng-template ngxCarouselItem>
+    <p>Page 1</p>
+  </ng-template>
+  <ng-template ngxCarouselItem>
+    <p>Page 2</p>
+  </ng-template>
+  <ng-template ngxCarouselItem>
+    <p>Page 3</p>
+  </ng-template>
+</ngx-video-player>
+```
+### Usage
+#### Inputs
+| Input | Type | Default | Description |
+| --- | --- | --- | --- |
+| autoplay | number | 0 | Time in milliseconds between each scroll. If set to 0, the carousel will not scroll automatically. |
+| scrollDirection | string | 'horizontal' | Direction of the scroll. Can be 'horizontal' or 'vertical'. |
+| scrollTime | number | 500 | Time in milliseconds for the scroll animation. |
+| scrollSensitivity | number | 0.5 | The sensitivity of the scroll. Number between 0 and 1. |
 
-## Publishing
+#### Outputs
+| Output | Event type | Description |
+| --- | --- | --- |
+| pageChange | Number | Event emitted when the page changes. |
 
-After building your library with `ng build ngx-carousel`, go to the dist folder `cd dist/ngx-carousel` and run `npm publish`.
-
-## Running unit tests
-
-Run `ng test ngx-carousel` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+#### Methods
+| Method | Description |
+| --- | --- |
+| next() | Scroll to the next page. |
+| previous() | Scroll to the previous page. |
+| goToPage(page: number) | Scroll to the specified page. |
