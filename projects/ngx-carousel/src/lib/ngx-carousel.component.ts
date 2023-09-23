@@ -7,7 +7,7 @@ import { BehaviorSubject, Observable, Subject, Subscription, combineLatest, dela
   selector: 'ngx-carousel',
   template: `
     <ng-container *ngFor="let item of items; let i = index">
-      <div class="carousel-item" [@slide]="{value: slideDirection, params: { scrollSpeed: scrollTime}}" *ngIf="_currentItemIndex$.value === i" [@.disabled]="_animationDisabled">
+      <div class="carousel-item" [@slide]="{value: slideDirection, params: { scrollTime: scrollTime}}" *ngIf="_currentItemIndex$.value === i" [@.disabled]="_animationDisabled">
         <ng-container [ngTemplateOutlet]="currentItem$ | async"></ng-container>
       </div>
     </ng-container>
@@ -178,7 +178,9 @@ export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy
     }
 
     if (value > 0) {
-      intervalSub = interval(value).subscribe(() => {
+      intervalSub = interval(value).pipe(
+        filter(() => !this._animationRunning)
+      ).subscribe(() => {
         this.next();
       });
     }
