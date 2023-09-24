@@ -33,7 +33,7 @@
           (focus)="onProgressHover()">
         </progress>
       <div class="thumbnail">
-        <img [src]="thumbnailSrc" alt="">
+        <img *ngif="thumbnailSrc" [src]="thumbnailSrc" alt="" crossorigin="anonymous">
         <p style="color: white" *ngIf="thumbnailTime">{{ thumbnailTime | chapter:chapters }}</p>
         <p style="color: white" *ngIf="thumbnailTime">{{ thumbnailTime | time }}</p>
       </div>
@@ -49,11 +49,11 @@
         <ng-template #muteIcon><span class="material-icons">volume_off</span></ng-template>
       </button></li>
       <li class="volume-control"><input type="range" min="0" max="1" step="0.1" (input)="onVolumeChange($event)" [value]="video.volume"></li>
-      <li class="text"><span>{{video.currentTime | time}} / {{video.duration | time}}</span></li>
-      <li class="text"><span>&bull;</span><span style="margin-left: 4px">{{video.currentTime | chapter:chapters}} </span></li>
+      <li *ngIf="video.currentTime && video.duration" class="text"><span>{{video.currentTime | time}} / {{video.duration | time}}</span></li>
+      <li *ngIf="chapters.length > 1 || chapters[0].title" class="text"><span>&bull;</span><span style="margin-left: 4px">{{video.currentTime | chapter:chapters}} </span></li>
       <span style="flex-grow: 1;"></span>
-      <li class="tracks-control"  (clickOutside)="trackMenuOpen = false">
-        <button *ngIf="tracks.length" type="button" (click)="trackMenuOpen = !trackMenuOpen"><span class="material-icons">subtitles</span></button>
+      <li *ngIf="tracks.length"  class="tracks-control"  (clickOutside)="trackMenuOpen = false">
+        <button type="button" (click)="trackMenuOpen = !trackMenuOpen"><span class="material-icons">subtitles</span></button>
         <ul class="tracks-menu" [ngClass]="{'open': trackMenuOpen}">
           <li *ngFor="let track of tracks"><button (click)="selectSubtitles(track)">{{ track.label}}</button></li>
           <li><button (click)="selectSubtitles(null)">Off</button></li>

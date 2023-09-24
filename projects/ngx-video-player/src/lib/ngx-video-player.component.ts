@@ -231,10 +231,19 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     ).subscribe(([seconds, resetThumbnail]) => {
       if (!video || resetThumbnail) {
         video = this.video.nativeElement.cloneNode(true) as HTMLVideoElement;
+        video.muted = true;
+        video.autoplay = false;
+        video.crossOrigin = 'anonymous'
+
         video.addEventListener('seeked', () => {
-          canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
-          canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
-          this.thumbnailSrc = canvas.toDataURL();
+          try {
+            canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
+            this.thumbnailSrc = canvas.toDataURL();
+          } catch (error) {
+            console.error("Error drawing thumbnail. It's likely that CORS headers are not present on the video", error);
+            this.thumbnailSrc = '';
+          }
         });
       }
 
