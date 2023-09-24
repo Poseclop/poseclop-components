@@ -33,7 +33,7 @@
           (focus)="onProgressHover()">
         </progress>
       <div class="thumbnail">
-        <img *ngif="thumbnailSrc" [src]="thumbnailSrc" alt="" crossorigin="anonymous">
+        <img *ngIf="thumbnailSrc" [src]="thumbnailSrc" alt="" crossorigin="anonymous">
         <p style="color: white" *ngIf="thumbnailTime">{{ thumbnailTime | chapter:chapters }}</p>
         <p style="color: white" *ngIf="thumbnailTime">{{ thumbnailTime | time }}</p>
       </div>
