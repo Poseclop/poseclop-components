@@ -398,7 +398,7 @@
           [posterSrc]="posters[selectedVideo]"
           [chapters]="chapters[selectedVideo]"
           [tracks]="tracks[selectedVideo]"
-          [sources]="sources[selectedVideo]">
+          [src]="sources[selectedVideo][0].src">
         </ngx-video-player>
         <div style="padding: 1rem 0">
           <button (click)="selectedVideo = 0">Video 1</button>
@@ -433,7 +433,36 @@
       </ng-container>
 
       <ng-container *ngSwitchCase="'NgxThreeDimensionCarouselComponent'">
-        <ngx-three-dimension-carousel></ngx-three-dimension-carousel>
+        <ngx-three-dimension-carousel
+          style="height: 450px;">
+            <p ngx3dCarouselItem style="
+              background-color: #125699;
+              color: white;">blabla 1</p>
+            <p ngx3dCarouselItem style="
+              background-color: cadetblue;
+              color: white;">Blablabla 2</p>
+            <p ngx3dCarouselItem style="
+              background-color: coral;
+              color: white;">Blablabla 3</p>
+            <p ngx3dCarouselItem style="
+                background-color: wheat;
+                color: white;">blabla 1</p>
+            <p ngx3dCarouselItem style="
+              background-color: cornflowerblue;
+              color: white;">Blablabla 2</p>
+            <p ngx3dCarouselItem style="
+              background-color: sienna;
+              color: white;">Blablabla 3</p>
+            <p ngx3dCarouselItem style="
+                background-color: plum;
+                color: white;">blabla 1</p>
+            <p ngx3dCarouselItem style="
+              background-color: palegreen;
+              color: white;">Blablabla 2</p>
+            <p ngx3dCarouselItem style="
+              background-color: firebrick;
+              color: white;">Blablabla 3</p>
+        </ngx-three-dimension-carousel>
       </ng-container>
 
       <div *ngSwitchDefault>Component not setup</div>

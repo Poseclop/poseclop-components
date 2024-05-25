@@ -63,8 +63,15 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() width?: number;
   /** Expose video loop attribute */
   @Input() loop: boolean | string = false;
+  public _src?: string;
   /** Use optionally to add a single source to the video */
-  @Input() src?: string;
+  @Input() set src(src: string) {
+    this._src = src;
+    console.warn(src);
+    if (this.video) {
+      this.video.nativeElement.src = src;
+    }
+  }
   /** The volume of the video */
   @Input() volume = 0.5;
   /** Play/Pause the video */
@@ -107,6 +114,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   get buffered(): TimeRanges {
     return this.video.nativeElement.buffered;
   }
+  isNaN = isNaN;
   //#endregion
 
   //#region PRIVATE PROPERTIES
@@ -132,8 +140,9 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     if (this.width) {
       this.video.nativeElement.width = this.width;
     }
-    if (this.src) {
-      this.video.nativeElement.src = this.src;
+    if (this._src) {
+      this.video.nativeElement.src = this._src;
+      this.video.nativeElement.load();
     }
   }
 
@@ -226,7 +235,7 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
     let chapters: { title: string, time: number }[];
 
     combineLatest([this.updateThumbnail$, this.resetThumbnail$]).pipe(
-      throunceTime(100),
+      throunceTime(10),
       takeUntil(this.unsubscribe$),
     ).subscribe(([seconds, resetThumbnail]) => {
       if (!video || resetThumbnail) {
@@ -260,7 +269,10 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
 
       this.thunmnailChapter = chapters.find((chapter) => chapter.time <= seconds)?.title;
       this.thumbnailTime = seconds;
-      video.currentTime = seconds;
+
+      if (video && video.readyState >= 2) {
+        video.currentTime = seconds;
+      }
 
       if (resetThumbnail) {
         this.resetThumbnail$.next(false);

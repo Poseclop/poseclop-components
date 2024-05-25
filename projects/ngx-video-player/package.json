@@ -1,6 +1,6 @@
 {
   "name": "@poseclop/ngx-video-player",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "peerDependencies": {
     "@angular/common": "^16.2.0",
     "@angular/core": "^16.2.0"

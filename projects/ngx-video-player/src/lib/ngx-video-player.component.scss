@@ -82,16 +82,16 @@ figure.show-controls .controls {
     }
 
     &::after {
-        content: '';
-        display: block;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: var(--hover-x);
-        height: 100%;
-        background-color: rgba(0,0,0,0.3);
-        overflow: hidden;
-      }
+      content: "";
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--hover-x);
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
 
     progress {
       height: 6px;
@@ -121,8 +121,10 @@ figure.show-controls .controls {
   display: block;
   visibility: hidden;
   position: absolute;
-  top: -124px;
+  width: 160px;
   left: calc(var(--hover-x) - 80px);
+  transform: translateY(-100%);
+  padding-bottom: 8px;
 
   img {
     border: 2px solid white;

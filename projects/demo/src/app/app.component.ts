@@ -88,6 +88,6 @@ export class AppComponent {
   ]]
   posters = ['assets/img/poster.jpg', 'assets/img/Sintel-Movie-1.jpg'];
 
-  selectedComponent = new BehaviorSubject<null | typeof components[number]>('NgxCarouselComponent');
+  selectedComponent = new BehaviorSubject<null | typeof components[number]>('NgxThreeDimensionCarouselComponent');
 
 }
