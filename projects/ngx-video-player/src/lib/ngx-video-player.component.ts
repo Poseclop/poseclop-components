@@ -1,6 +1,22 @@
 /* eslint-disable @angular-eslint/no-output-native */
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject, MonoTypeOperatorFunction, Observable, Subject, combineLatest, debounceTime, fromEvent, merge, takeUntil, tap, throttleTime } from 'rxjs';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
+import {
+  BehaviorSubject,
+  Subject,
+  combineLatest,
+  debounceTime,
+  fromEvent,
+  takeUntil,
+  tap,
+} from 'rxjs';
 
 export interface ISourceAttribute {
   src: string;
@@ -16,15 +32,9 @@ export interface ITrackAttribute {
 }
 
 export interface IChapterAttribute {
-  title: string,
-  time: number,
-  duration?: number
-}
-
-function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
-  return (source: Observable<T>) =>
-    merge(source.pipe(throttleTime(duration)), source.pipe(debounceTime(duration)))
-      .pipe(throttleTime(0, undefined, { leading: true, trailing: false }));
+  title: string;
+  time: number;
+  duration?: number;
 }
 
 /**
@@ -35,7 +45,9 @@ function throunceTime<T>(duration: number): MonoTypeOperatorFunction<T> {
   templateUrl: './ngx-video-player.component.html',
   styleUrls: ['./ngx-video-player.component.scss'],
 })
-export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy {
+export class NgxVideoPlayerComponent
+  implements OnInit, AfterViewInit, OnDestroy
+{
   //#region INPUTS
 
   /** The source of the poster that will be used for the video */
@@ -67,7 +79,6 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   /** Use optionally to add a single source to the video */
   @Input() set src(src: string) {
     this._src = src;
-    console.warn(src);
     if (this.video) {
       this.video.nativeElement.src = src;
     }
@@ -95,7 +106,8 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
 
   //#region PUBLIC PROPERTIES
   /** Does the browser support video */
-  readonly browserSupportsVideo: boolean = !!document.createElement('video').canPlayType;
+  readonly browserSupportsVideo: boolean =
+    !!document.createElement('video').canPlayType;
   /** Is fullScreen enabled */
   readonly fullScreenEnabled: boolean = !!document.fullscreenEnabled;
   /** The video sources (Used only internaly. Use [sources] to update video sources when interacting with the component) */
@@ -193,10 +205,12 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
    * @param track The track to select
    */
   selectSubtitles(track: ITrackAttribute | null): void {
-    for (let i = 0; i< this.video.nativeElement.textTracks.length; i++) {
+    for (let i = 0; i < this.video.nativeElement.textTracks.length; i++) {
       if (track === null) {
         this.video.nativeElement.textTracks[i].mode = 'hidden';
-      } else if (this.video.nativeElement.textTracks[i].language === track.srclang) {
+      } else if (
+        this.video.nativeElement.textTracks[i].language === track.srclang
+      ) {
         this.video.nativeElement.textTracks[i].mode = 'showing';
       } else {
         this.video.nativeElement.textTracks[i].mode = 'hidden';
@@ -232,71 +246,84 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
   private handleThumbnailDisplay(): void {
     let video: HTMLVideoElement;
     let canvas: HTMLCanvasElement;
-    let chapters: { title: string, time: number }[];
+    let chapters: { title: string; time: number }[];
 
-    combineLatest([this.updateThumbnail$, this.resetThumbnail$]).pipe(
-      throunceTime(10),
-      takeUntil(this.unsubscribe$),
-    ).subscribe(([seconds, resetThumbnail]) => {
-      if (!video || resetThumbnail) {
-        video = this.video.nativeElement.cloneNode(true) as HTMLVideoElement;
-        video.muted = true;
-        video.autoplay = false;
-        video.crossOrigin = 'anonymous'
+    combineLatest([this.updateThumbnail$, this.resetThumbnail$])
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe(([seconds, resetThumbnail]) => {
+        if (!video || resetThumbnail) {
+          video = this.video.nativeElement.cloneNode(true) as HTMLVideoElement;
+          video.muted = true;
+          video.autoplay = false;
+          video.crossOrigin = 'anonymous';
 
-        video.addEventListener('seeked', () => {
-          try {
-            canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
-            this.thumbnailSrc = canvas.toDataURL();
-          } catch (error) {
-            console.error("Error drawing thumbnail. It's likely that CORS headers are not present on the video", error);
-            this.thumbnailSrc = '';
-          }
-        });
-      }
+          video.addEventListener('seeked', () => {
+            try {
+              canvas
+                .getContext('2d')
+                ?.clearRect(0, 0, canvas.width, canvas.height);
+              canvas
+                .getContext('2d')
+                ?.drawImage(video, 0, 0, canvas.width, canvas.height);
+              this.thumbnailSrc = canvas.toDataURL();
+            } catch (error) {
+              console.error(
+                "Error drawing thumbnail. It's likely that CORS headers are not present on the video",
+                error
+              );
+              this.thumbnailSrc = '';
+            }
+          });
+        }
 
-      if (!canvas || resetThumbnail) {
-        canvas = document.createElement("canvas");
-        const ratio = this.video.nativeElement.videoWidth / this.video.nativeElement.videoHeight;
-        canvas.width = 160;
-        canvas.height = Math.floor(160 / ratio);
-      }
+        if (!canvas || resetThumbnail) {
+          canvas = document.createElement('canvas');
+          const ratio =
+            this.video.nativeElement.videoWidth /
+            this.video.nativeElement.videoHeight;
+          canvas.width = 160;
+          canvas.height = Math.floor(160 / ratio);
+        }
 
-      if (!chapters || resetThumbnail) {
-        chapters = this.chapters ? [...this.chapters].sort((a, b) => b.time - a.time) : [];
-      }
+        if (!chapters || resetThumbnail) {
+          chapters = this.chapters
+            ? [...this.chapters].sort((a, b) => b.time - a.time)
+            : [];
+        }
 
-      this.thunmnailChapter = chapters.find((chapter) => chapter.time <= seconds)?.title;
-      this.thumbnailTime = seconds;
+        this.thunmnailChapter = chapters.find(
+          (chapter) => chapter.time <= seconds
+        )?.title;
+        this.thumbnailTime = seconds;
 
-      if (video && video.readyState >= 2) {
-        video.currentTime = seconds;
-      }
+        if (video && video.readyState >= 2) {
+          video.currentTime = seconds;
+        }
 
-      if (resetThumbnail) {
-        this.resetThumbnail$.next(false);
-      }
-    })
+        if (resetThumbnail) {
+          this.resetThumbnail$.next(false);
+        }
+      });
   }
 
   /**
    * Handles the display of the video controls on mouse movement
    */
   private handleMouseMovement(): void {
-    fromEvent(this.figure.nativeElement, 'mousemove').pipe(
-      tap(() => {
-        this.mouseMoving = true;
-      }),
-      debounceTime(1500),
-      tap(() => {
-        this.mouseMoving = false;
-      }),
-      takeUntil(this.unsubscribe$)
-    ).subscribe();
+    fromEvent(this.figure.nativeElement, 'mousemove')
+      .pipe(
+        tap(() => {
+          this.mouseMoving = true;
+        }),
+        debounceTime(1500),
+        tap(() => {
+          this.mouseMoving = false;
+        }),
+        takeUntil(this.unsubscribe$)
+      )
+      .subscribe();
   }
   //#endregion
-
 
   /**
    * Coerces a data-bound value (typically a string) to a boolean.
@@ -326,7 +353,9 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
       .sort((a, b) => a.time - b.time)
       .map((chapter, index) => ({
         ...chapter,
-        duration: (this.chapters[index + 1]?.time  || this.video.nativeElement.duration) - chapter.time
+        duration:
+          (this.chapters[index + 1]?.time ||
+            this.video.nativeElement.duration) - chapter.time,
       }));
     this.resetThumbnail$.next(true);
   }
@@ -337,11 +366,16 @@ export class NgxVideoPlayerComponent implements OnInit, AfterViewInit, OnDestroy
    * @returns void
    */
   onProgressHover(event?: MouseEvent): void {
-    if (!event) return
+    if (!event) return;
     const rect = this.progress.nativeElement.getBoundingClientRect();
     const pos = (event.clientX - rect.left) / rect.width;
-    this.progress.nativeElement.parentElement?.style.setProperty('--hover-x', `${event.clientX - rect.left}px`);
-    this.updateThumbnail$.next(Math.floor(pos * this.video.nativeElement.duration));
+    this.progress.nativeElement.parentElement?.style.setProperty(
+      '--hover-x',
+      `${event.clientX - rect.left}px`
+    );
+    this.updateThumbnail$.next(
+      Math.floor(pos * this.video.nativeElement.duration)
+    );
   }
 
   /**
