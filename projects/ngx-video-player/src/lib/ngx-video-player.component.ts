@@ -41,9 +41,10 @@ export interface IChapterAttribute {
  * A video player component for Angular
  */
 @Component({
-  selector: 'ngx-video-player',
-  templateUrl: './ngx-video-player.component.html',
-  styleUrls: ['./ngx-video-player.component.scss'],
+    selector: 'ngx-video-player',
+    templateUrl: './ngx-video-player.component.html',
+    styleUrls: ['./ngx-video-player.component.scss'],
+    standalone: false
 })
 export class NgxVideoPlayerComponent
   implements OnInit, AfterViewInit, OnDestroy

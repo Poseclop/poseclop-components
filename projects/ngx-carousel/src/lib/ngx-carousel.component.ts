@@ -2,13 +2,14 @@ import { AfterContentInit, Component, ContentChildren, ElementRef, EventEmitter,
 import { NgxCarouselItemDirective } from './ngx-carousel-item.directive';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { BehaviorSubject, Observable, Subject, Subscription, combineLatest, delay, filter, fromEvent, interval, map, startWith, takeUntil, tap, timeInterval } from 'rxjs';
+import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'ngx-carousel',
   template: `
     <ng-container *ngFor="let item of items; let i = index">
       <div class="carousel-item" [@slide]="{value: slideDirection, params: { scrollTime: scrollTime}}" *ngIf="_currentItemIndex$.value === i" [@.disabled]="_animationDisabled">
-        <ng-container [ngTemplateOutlet]="currentItem$ | async"></ng-container>
+        <ng-template [ngTemplateOutlet]="currentItem$ | async"></ng-template>
       </div>
     </ng-container>
 
@@ -139,6 +140,7 @@ import { BehaviorSubject, Observable, Subject, Subscription, combineLatest, dela
       ]),
     ]),
   ],
+  standalone: false
 })
 export class NgxCarouselComponent implements OnInit, AfterContentInit, OnDestroy {
   @ContentChildren(NgxCarouselItemDirective) items!: QueryList<NgxCarouselItemDirective>;

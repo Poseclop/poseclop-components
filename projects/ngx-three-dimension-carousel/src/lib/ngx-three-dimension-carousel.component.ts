@@ -2,13 +2,13 @@ import { AfterContentInit, Component, ContentChildren, ElementRef, QueryList } f
 import { Ngx3dCarouselItemDirective } from './ngx-carousel-item.directive';
 
 @Component({
-  selector: 'ngx-three-dimension-carousel',
-  template: `
+    selector: 'ngx-three-dimension-carousel',
+    template: `
     <div class="carousel">
       <ng-content></ng-content>
     </div>
   `,
-  styles: [`
+    styles: [`
     :host {
       display: block;
       position: relative;
@@ -34,7 +34,8 @@ import { Ngx3dCarouselItemDirective } from './ngx-carousel-item.directive';
       width: 100%;
       height: 100%;
     }
-  `]
+  `],
+    standalone: false
 })
 export class NgxThreeDimensionCarouselComponent implements AfterContentInit {
   @ContentChildren(Ngx3dCarouselItemDirective) items!: QueryList<Ngx3dCarouselItemDirective>;

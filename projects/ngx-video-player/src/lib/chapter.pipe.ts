@@ -1,6 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({name: 'chapter'})
+@Pipe({
+    name: 'chapter',
+    standalone: false
+})
 export class ChapterPipe implements PipeTransform {
   transform(seconds: number, chapters: { title: string; time: number; }[]): string {
     const chapter = [...chapters]
