@@ -1,28 +1,57 @@
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<figure #figure [ngClass]="{'show-controls': mouseMoving || video.paused || video.ended}">
-  <video #video id="video-tag" preload="metadata" [controls]="!browserSupportsVideo && _coerceBooleanProperty(controls)"
-    [crossOrigin]="crossOrigin" [autoplay]="autoplay" [poster]="posterSrc" [loop]="_coerceBooleanProperty(loop)"
-    [volume]="volume" (click)="toggleVideoPlayPause()" (loadedmetadata)="onMetadataLodaded()">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+
+<figure #figure
+        [ngClass]="{'show-controls': mouseMoving || video.paused || video.ended}">
+
+  <video #video
+         id="video-tag"
+         preload="metadata"
+         [controls]="!browserSupportsVideo && _coerceBooleanProperty(controls)"
+         [crossOrigin]="crossOrigin"
+         [autoplay]="autoplay"
+         [poster]="posterSrc"
+         [loop]="_coerceBooleanProperty(loop)"
+         [volume]="volume"
+         (click)="toggleVideoPlayPause()"
+         (loadedmetadata)="onMetadataLodaded()">
     @for (source of _videoSources; track source) {
-    <source [src]="source.src" [type]="source.type">
+    <source [src]="source.src"
+            [type]="source.type">
     }
     @for (track of tracks; track track) {
-    <track [src]="track.src" [srclang]="track.srclang" [label]="track.label" [default]="track.default">
+    <track [src]="track.src"
+           [srclang]="track.srclang"
+           [label]="track.label"
+           [default]="track.default">
     }
   </video>
   @if (browserSupportsVideo && _coerceBooleanProperty(controls)) {
-  <ul class="controls" aria-controls="video-tag">
-    <li #progress tabindex="0" class="progress" (mousemove)="onProgressHover($event)"
-      (keyup.ArrowRight)="advanceVideoBy(10)" (keyup.ArrowLeft)="advanceVideoBy(-10)">
+  <ul class="controls"
+      aria-controls="video-tag">
+    <li #progress
+        tabindex="0"
+        class="progress"
+        (mousemove)="onProgressHover($event)"
+        (keyup.ArrowRight)="advanceVideoBy(10)"
+        (keyup.ArrowLeft)="advanceVideoBy(-10)">
       @for (chapter of chapters | sort; track chapter; let i = $index) {
-      <progress #chapterProgress tabindex="-1" [value]="video.currentTime - chapter.time" [max]="chapter.duration || 0"
-        [style.width.%]="(chapter.duration || 0) / video.duration * 100" (click)="onProgressBarClick($event)"
-        (keyup.ArrowRight)="advanceVideoBy(10)" (keyup.ArrowLeft)="advanceVideoBy(-10)" (focus)="onProgressHover()">
+      <progress #chapterProgress
+                tabindex="-1"
+                [value]="video.currentTime - chapter.time"
+                [max]="chapter.duration || 0"
+                [style.width.%]="(chapter.duration || 0) / video.duration * 100"
+                (click)="onProgressBarClick($event)"
+                (keyup.ArrowRight)="advanceVideoBy(10)"
+                (keyup.ArrowLeft)="advanceVideoBy(-10)"
+                (focus)="onProgressHover()">
       </progress>
       }
       <div class="thumbnail">
         @if (thumbnailSrc) {
-        <img [src]="thumbnailSrc" alt="" crossorigin="anonymous">
+        <img [src]="thumbnailSrc"
+             alt=""
+             crossorigin="anonymous">
         }
         @if (thumbnailTime) {
         <p style="color: white">{{ thumbnailTime | chapter:chapters }}</p>
@@ -34,22 +63,28 @@
       <div class="chapters"></div>
     </li>
     <div class="buttons">
-      <li><button type="button" (click)="toggleVideoPlayPause()">
+      <li><button type="button"
+                (click)="toggleVideoPlayPause()">
           @if (video.paused || video.ended) {
           <span class="material-icons">play_arrow</span>
           } @else {
           <span class="material-icons">pause</span>
           }
         </button></li>
-      <li class="mute"><button type="button" (click)="video.muted = !video.muted">
+      <li class="mute"><button type="button"
+                (click)="video.muted = !video.muted">
           @if (!video.muted && video.volume) {
           <span class="material-icons">volume_up</span>
           } @else {
           <span class="material-icons">volume_off</span>
           }
         </button></li>
-      <li class="volume-control"><input type="range" min="0" max="1" step="0.1" (input)="onVolumeChange($event)"
-          [value]="video.volume"></li>
+      <li class="volume-control"><input type="range"
+               min="0"
+               max="1"
+               step="0.1"
+               (input)="onVolumeChange($event)"
+               [value]="video.volume"></li>
       @if (!isNaN(video.currentTime) && !isNaN(video.duration)) {
       <li class="text"><span>{{video.currentTime | time}} /
           {{video.duration | time}}</span></li>
@@ -60,10 +95,12 @@
       }
       <span style="flex-grow: 1;"></span>
       @if (tracks.length) {
-      <li class="tracks-control" (clickOutside)="trackMenuOpen = false">
-        <button type="button" (click)="trackMenuOpen = !trackMenuOpen"><span
-            class="material-icons">subtitles</span></button>
-        <ul class="tracks-menu" [ngClass]="{'open': trackMenuOpen}">
+      <li class="tracks-control"
+          (clickOutside)="trackMenuOpen = false">
+        <button type="button"
+                (click)="trackMenuOpen = !trackMenuOpen"><span class="material-icons">subtitles</span></button>
+        <ul class="tracks-menu"
+            [ngClass]="{'open': trackMenuOpen}">
           @for (track of tracks; track track) {
           <li><button (click)="selectSubtitles(track)">{{ track.label}}</button></li>
           }
@@ -72,7 +109,8 @@
       </li>
       }
       <li>@if (fullScreenEnabled) {
-        <button type="button" (click)="toggleFullScreen()"><span class="material-icons">fullscreen</span></button>
+        <button type="button"
+                (click)="toggleFullScreen()"><span class="material-icons">fullscreen</span></button>
         }
       </li>
     </div>
