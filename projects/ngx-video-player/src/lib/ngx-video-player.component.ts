@@ -2,11 +2,15 @@
 import { NgClass } from '@angular/common';
 import {
   AfterViewInit,
+  booleanAttribute,
   Component,
+  effect,
   ElementRef,
-  Input,
+  input,
+  model,
   OnDestroy,
   OnInit,
+  viewChild,
   ViewChild,
 } from '@angular/core';
 import {
@@ -60,53 +64,36 @@ export class NgxVideoPlayerComponent
   //#region INPUTS
 
   /** The source of the poster that will be used for the video */
-  @Input() posterSrc = '';
+  posterSrc = input<string>();
   /** The chapters for the video */
-  @Input() chapters: IChapterAttribute[] = [{ title: '', time: 0 }];
+  chapters = model<IChapterAttribute[]>([{ title: '', time: 0 }]);
   /** The tracks for the video */
-  @Input() tracks: ITrackAttribute[] = [];
+  tracks = input<ITrackAttribute[]>([]);
   /** The sources for the video */
-  @Input() set sources(sources: ISourceAttribute[]) {
-    this._videoSources = sources;
-    if (this.video) {
-      this.video.nativeElement.load();
-    }
-  }
-  @Input() controls: boolean | string = false;
+  sources = input<ISourceAttribute[]>()
+  /** Show controls */
+  controls = input(false, { transform: booleanAttribute });
   /** Autoplay the video */
-  @Input() autoplay = false;
-  // TODO Implement Controlslist ITrackAttribute
+  autoplay = input(false, { transform: booleanAttribute });
   /** Expose video crossOrigin attribute */
-  @Input() crossOrigin?: 'anonymous' | 'use-credentials' | '';
+  crossOrigin = input<'anonymous' | 'use-credentials' | ''>('');
   /** Expose video height attribute */
-  @Input() height?: number;
+  height = input<number>();
   /** Expose video width attribute */
-  @Input() width?: number;
+  width = input<number>();
   /** Expose video loop attribute */
-  @Input() loop: boolean | string = false;
-  public _src?: string;
+  loop = input(false, { transform: booleanAttribute });
   /** Use optionally to add a single source to the video */
-  @Input() set src(src: string) {
-    this._src = src;
-    if (this.video) {
-      this.video.nativeElement.src = src;
-    }
-  }
+  src = input<string>();
   /** The volume of the video */
-  @Input() volume = 0.5;
+  volume = input(0.5);
   /** Play/Pause the video */
-  @Input() set play(value: boolean) {
-    if (value) {
-      this.video.nativeElement.play();
-    } else {
-      this.video.nativeElement.pause();
-    }
-  }
+  play = model(false);
   //#endregion
 
   //#region VIEWCHILDREN
   /** The video element */
-  @ViewChild('video') video!: ElementRef<HTMLVideoElement>;
+  video = viewChild.required<unknown, ElementRef<HTMLVideoElement>>('video', { read: ElementRef });
   /** The progress bar element */
   @ViewChild('progress') progress!: ElementRef<HTMLElement>;
   /** The figure element (container to video and controls) */
@@ -119,8 +106,6 @@ export class NgxVideoPlayerComponent
     !!document.createElement('video').canPlayType;
   /** Is fullScreen enabled */
   readonly fullScreenEnabled: boolean = !!document.fullscreenEnabled;
-  /** The video sources (Used only internaly. Use [sources] to update video sources when interacting with the component) */
-  _videoSources: ISourceAttribute[] = [];
   /** The source for the progress thumbnail */
   thumbnailSrc?: string;
   /** The time at which the progress cursor is currently pointing to */
@@ -133,7 +118,7 @@ export class NgxVideoPlayerComponent
   mouseMoving = false;
   /** Expose the video buffered attribute */
   get buffered(): TimeRanges {
-    return this.video.nativeElement.buffered;
+    return this.video().nativeElement.buffered;
   }
   isNaN = isNaN;
   //#endregion
@@ -147,6 +132,38 @@ export class NgxVideoPlayerComponent
   private resetThumbnail$ = new BehaviorSubject<boolean>(false);
   //#endregion
 
+  constructor() {
+    effect(() => {
+      const sources = this.sources();
+      const video = this.video();
+      if (video && sources && sources.length > 0) {
+        this.video().nativeElement.load();
+      }
+    });
+
+    effect(() => {
+      const src = this.src();
+      const video = this.video();
+      if (video && src) {
+        this.video().nativeElement.src = src;
+        this.video().nativeElement.load();
+      }
+    })
+
+    effect(() => {
+      const play = this.play();
+      const video = this.video();
+
+      if (video) {
+        if (play) {
+          video.nativeElement.play();
+        } else {
+          video.nativeElement.pause();
+        }
+      }
+    })
+  }
+
   //#region LIFECYCLE HOOKS
   ngOnInit(): void {
     this.handleThumbnailDisplay();
@@ -154,17 +171,19 @@ export class NgxVideoPlayerComponent
 
   ngAfterViewInit(): void {
     this.handleMouseMovement();
+    const height = this.height();
+    const width = this.width();
 
-    if (this.height) {
-      this.video.nativeElement.height = this.height;
+    if (height) {
+      this.video().nativeElement.height = height;
     }
-    if (this.width) {
-      this.video.nativeElement.width = this.width;
+    if (width) {
+      this.video().nativeElement.width = width;
     }
-    if (this._src) {
-      this.video.nativeElement.src = this._src;
-      this.video.nativeElement.load();
-    }
+    // if (this.src()) {
+    //   this.video().nativeElement.src = this.src();
+    //   this.video().nativeElement.load();
+    // }
   }
 
   ngOnDestroy(): void {
@@ -178,10 +197,10 @@ export class NgxVideoPlayerComponent
    * Toggles the video play/pause state
    */
   toggleVideoPlayPause(): void {
-    if (this.video.nativeElement.paused || this.video.nativeElement.ended) {
-      this.video.nativeElement.play();
+    if (this.video().nativeElement.paused || this.video().nativeElement.ended) {
+      this.video().nativeElement.play();
     } else {
-      this.video.nativeElement.pause();
+      this.video().nativeElement.pause();
     }
   }
 
@@ -189,8 +208,8 @@ export class NgxVideoPlayerComponent
    * Stops the video and resets the time to 0
    */
   stopVideo(): void {
-    this.video.nativeElement.pause();
-    this.video.nativeElement.currentTime = 0;
+    this.video().nativeElement.pause();
+    this.video().nativeElement.currentTime = 0;
   }
 
   /**
@@ -198,7 +217,7 @@ export class NgxVideoPlayerComponent
    * @param seconds The number of seconds to set the video time to
    */
   setVideoTime(seconds: number): void {
-    this.video.nativeElement.currentTime = seconds;
+    this.video().nativeElement.currentTime = seconds;
   }
 
   /**
@@ -206,7 +225,7 @@ export class NgxVideoPlayerComponent
    * @param volume The volume to set the video to
    */
   setVideoVolume(volume: number): void {
-    this.video.nativeElement.volume = volume;
+    this.video().nativeElement.volume = volume;
   }
 
   /**
@@ -214,15 +233,15 @@ export class NgxVideoPlayerComponent
    * @param track The track to select
    */
   selectSubtitles(track: ITrackAttribute | null): void {
-    for (let i = 0; i < this.video.nativeElement.textTracks.length; i++) {
+    for (let i = 0; i < this.video().nativeElement.textTracks.length; i++) {
       if (track === null) {
-        this.video.nativeElement.textTracks[i].mode = 'hidden';
+        this.video().nativeElement.textTracks[i].mode = 'hidden';
       } else if (
-        this.video.nativeElement.textTracks[i].language === track.srclang
+        this.video().nativeElement.textTracks[i].language === track.srclang
       ) {
-        this.video.nativeElement.textTracks[i].mode = 'showing';
+        this.video().nativeElement.textTracks[i].mode = 'showing';
       } else {
-        this.video.nativeElement.textTracks[i].mode = 'hidden';
+        this.video().nativeElement.textTracks[i].mode = 'hidden';
       }
     }
     this.trackMenuOpen = false;
@@ -244,7 +263,7 @@ export class NgxVideoPlayerComponent
    * @param seconds The number of seconds to advance the video by
    */
   advanceVideoBy(seconds: number): void {
-    this.setVideoTime(this.video.nativeElement.currentTime + seconds);
+    this.setVideoTime(this.video().nativeElement.currentTime + seconds);
   }
   //#endregion
 
@@ -261,7 +280,7 @@ export class NgxVideoPlayerComponent
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([seconds, resetThumbnail]) => {
         if (!video || resetThumbnail) {
-          video = this.video.nativeElement.cloneNode(true) as HTMLVideoElement;
+          video = this.video().nativeElement.cloneNode(true) as HTMLVideoElement;
           video.muted = true;
           video.autoplay = false;
           video.crossOrigin = 'anonymous';
@@ -288,15 +307,15 @@ export class NgxVideoPlayerComponent
         if (!canvas || resetThumbnail) {
           canvas = document.createElement('canvas');
           const ratio =
-            this.video.nativeElement.videoWidth /
-            this.video.nativeElement.videoHeight;
+            this.video().nativeElement.videoWidth /
+            this.video().nativeElement.videoHeight;
           canvas.width = 160;
           canvas.height = Math.floor(160 / ratio);
         }
 
         if (!chapters || resetThumbnail) {
           chapters = this.chapters
-            ? [...this.chapters].sort((a, b) => b.time - a.time)
+            ? [...this.chapters()].sort((a, b) => b.time - a.time)
             : [];
         }
 
@@ -358,14 +377,14 @@ export class NgxVideoPlayerComponent
    */
   onMetadataLodaded(): void {
     // Sort chapters by time and calculate duration
-    this.chapters = this.chapters
+    this.chapters.set(this.chapters()
       .sort((a, b) => a.time - b.time)
       .map((chapter, index) => ({
         ...chapter,
         duration:
-          (this.chapters[index + 1]?.time ||
-            this.video.nativeElement.duration) - chapter.time,
-      }));
+          (this.chapters()[index + 1]?.time ||
+            this.video().nativeElement.duration) - chapter.time,
+      })));
     this.resetThumbnail$.next(true);
   }
 
@@ -383,7 +402,7 @@ export class NgxVideoPlayerComponent
       `${event.clientX - rect.left}px`
     );
     this.updateThumbnail$.next(
-      Math.floor(pos * this.video.nativeElement.duration)
+      Math.floor(pos * this.video().nativeElement.duration)
     );
   }
 
@@ -394,7 +413,7 @@ export class NgxVideoPlayerComponent
   onProgressBarClick(event: MouseEvent): void {
     const rect = this.progress.nativeElement.getBoundingClientRect();
     const pos = (event.clientX - rect.left) / rect.width;
-    this.setVideoTime(pos * this.video.nativeElement.duration);
+    this.setVideoTime(pos * this.video().nativeElement.duration);
   }
   //#endregion
 }

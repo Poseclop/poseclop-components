@@ -7,26 +7,26 @@
   <video #video
          id="video-tag"
          preload="metadata"
-         [controls]="!browserSupportsVideo && _coerceBooleanProperty(controls)"
-         [crossOrigin]="crossOrigin"
-         [autoplay]="autoplay"
-         [poster]="posterSrc"
-         [loop]="_coerceBooleanProperty(loop)"
-         [volume]="volume"
+         [controls]="!browserSupportsVideo && controls()"
+         [crossOrigin]="crossOrigin()"
+         [autoplay]="autoplay()"
+         [poster]="posterSrc()"
+         [loop]="loop()"
+         [volume]="volume()"
          (click)="toggleVideoPlayPause()"
          (loadedmetadata)="onMetadataLodaded()">
-    @for (source of _videoSources; track source) {
+    @for (source of sources(); track source.src) {
     <source [src]="source.src"
             [type]="source.type">
     }
-    @for (track of tracks; track track) {
+    @for (track of tracks(); track track.src) {
     <track [src]="track.src"
            [srclang]="track.srclang"
            [label]="track.label"
            [default]="track.default">
     }
   </video>
-  @if (browserSupportsVideo && _coerceBooleanProperty(controls)) {
+  @if (browserSupportsVideo && controls()) {
   <ul class="controls"
       aria-controls="video-tag">
     <li #progress
@@ -35,7 +35,7 @@
         (mousemove)="onProgressHover($event)"
         (keyup.ArrowRight)="advanceVideoBy(10)"
         (keyup.ArrowLeft)="advanceVideoBy(-10)">
-      @for (chapter of chapters | sort; track chapter; let i = $index) {
+      @for (chapter of chapters() | sort; track chapter.time) {
       <progress #chapterProgress
                 tabindex="-1"
                 [value]="video.currentTime - chapter.time"
@@ -54,7 +54,7 @@
              crossorigin="anonymous">
         }
         @if (thumbnailTime) {
-        <p style="color: white">{{ thumbnailTime | chapter:chapters }}</p>
+        <p style="color: white">{{ thumbnailTime | chapter:chapters() }}</p>
         }
         @if (thumbnailTime) {
         <p style="color: white">{{ thumbnailTime | time }}</p>
@@ -89,8 +89,8 @@
       <li class="text"><span>{{video.currentTime | time}} /
           {{video.duration | time}}</span></li>
       }
-      @if (chapters.length > 1 || chapters[0].title) {
-      <li class="text"><span>&bull;</span><span style="margin-left: 4px">{{video.currentTime | chapter:chapters}}
+      @if (chapters.length > 1 || chapters()[0].title) {
+      <li class="text"><span>&bull;</span><span style="margin-left: 4px">{{video.currentTime | chapter:chapters()}}
         </span></li>
       }
       <span style="flex-grow: 1;"></span>
@@ -101,7 +101,7 @@
                 (click)="trackMenuOpen = !trackMenuOpen"><span class="material-icons">subtitles</span></button>
         <ul class="tracks-menu"
             [ngClass]="{'open': trackMenuOpen}">
-          @for (track of tracks; track track) {
+          @for (track of tracks(); track track) {
           <li><button (click)="selectSubtitles(track)">{{ track.label}}</button></li>
           }
           <li><button (click)="selectSubtitles(null)">Off</button></li>
