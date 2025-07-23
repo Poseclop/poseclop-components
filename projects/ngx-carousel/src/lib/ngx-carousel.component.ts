@@ -7,12 +7,14 @@ import { NgTemplateOutlet } from '@angular/common';
 @Component({
   selector: 'ngx-carousel',
   template: `
-    <ng-container *ngFor="let item of items; let i = index">
-      <div class="carousel-item" [@slide]="{value: slideDirection, params: { scrollTime: scrollTime}}" *ngIf="_currentItemIndex$.value === i" [@.disabled]="_animationDisabled">
-        <ng-template [ngTemplateOutlet]="currentItem$ | async"></ng-template>
-      </div>
-    </ng-container>
-
+    @for (item of items; track item; let i = $index) {
+      @if (_currentItemIndex$.value === i) {
+        <div class="carousel-item" [@slide]="{value: slideDirection, params: { scrollTime: scrollTime}}" [@.disabled]="_animationDisabled">
+          <ng-template [ngTemplateOutlet]="currentItem$ | async"></ng-template>
+        </div>
+      }
+    }
+    
     <div class="page-buttons" [ngClass]="{'vertical': _scrollDirection === 'vertical'}">
       <button class="arrow-button" (click)="previous()">
         <svg xmlns="http://www.w3.org/2000/svg" height="14px" viewBox="0 0 24 24" width="14px" fill="#fff" [ngStyle]="{'transform': _scrollDirection === 'vertical' ? 'rotate(90deg)' : null}">
@@ -21,12 +23,13 @@ import { NgTemplateOutlet } from '@angular/common';
         </svg>
       </button>
       <!-- eslint-disable-next-line @angular-eslint/template/elements-content -->
-      <button
-        class="page-button"
-        *ngFor="let item of items; let i = index"
-        (click)="goTo(i)"
-        [ngClass]="{'selected': _currentItemIndex$.value === i}">
-      </button>
+      @for (item of items; track item; let i = $index) {
+        <button
+          class="page-button"
+          (click)="goTo(i)"
+          [ngClass]="{'selected': _currentItemIndex$.value === i}">
+        </button>
+      }
       <button class="arrow-button" (click)="next()">
         <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="14px" viewBox="0 0 24 24" width="14px" fill="#fff" [ngStyle]="{'transform': _scrollDirection === 'vertical' ? 'rotate(90deg)' : null}">
           <g><path d="M0,0h24v24H0V0z" fill="none"/></g>
@@ -34,7 +37,7 @@ import { NgTemplateOutlet } from '@angular/common';
         </svg>
       </button>
     </div>
-  `,
+    `,
   styles: [`
     :host {
       display: flex;
