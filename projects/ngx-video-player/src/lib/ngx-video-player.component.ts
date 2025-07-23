@@ -41,14 +41,13 @@ export interface IChapterAttribute {
  * A video player component for Angular
  */
 @Component({
-    selector: 'ngx-video-player',
-    templateUrl: './ngx-video-player.component.html',
-    styleUrls: ['./ngx-video-player.component.scss'],
-    standalone: false
+  selector: 'ngx-video-player',
+  templateUrl: './ngx-video-player.component.html',
+  styleUrls: ['./ngx-video-player.component.scss'],
+  standalone: false
 })
 export class NgxVideoPlayerComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   //#region INPUTS
 
   /** The source of the poster that will be used for the video */
@@ -67,7 +66,7 @@ export class NgxVideoPlayerComponent
   @Input() controls: boolean | string = false;
   /** Autoplay the video */
   @Input() autoplay = false;
-  // TODO Implement Controlslist attribute
+  // TODO Implement Controlslist ITrackAttribute
   /** Expose video crossOrigin attribute */
   @Input() crossOrigin?: 'anonymous' | 'use-credentials' | '';
   /** Expose video height attribute */

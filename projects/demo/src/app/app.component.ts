@@ -10,10 +10,10 @@ const components = [
 ] as const;
 
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.scss'],
-    standalone: false
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+  standalone: false
 })
 export class AppComponent {
   selectedVideo = 0;
@@ -30,7 +30,7 @@ export class AppComponent {
       src: 'assets/video/tears-of-steel-battle-clip-medium.webm',
       type: 'video/webm',
     },
-  ],[
+  ], [
     {
       src: 'assets/video/sintel-short.mp4',
       type: 'video/mp4',
@@ -40,7 +40,7 @@ export class AppComponent {
       type: 'video/webm',
     }
   ]];
-  tracks: ITrackAttribute[][] = [[],[
+  tracks: ITrackAttribute[][] = [[], [
     {
       src: 'assets/vtt/sintel-en.vtt',
       kind: 'subtitles',
@@ -73,7 +73,7 @@ export class AppComponent {
       title: 'Chapter 3',
       time: 50
     }
-  ],[
+  ], [
     {
       title: 'Chapter 1A',
       time: 0,

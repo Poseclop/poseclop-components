@@ -69,7 +69,7 @@
             ],
             "styles": ["projects/demo/src/styles.scss"],
             "scripts": [],
-            "browser": "projects/demo/src/main.ts"
+            "browser": "projects/demo/src/main.ts",
           },
           "configurations": {
             "production": {
@@ -90,7 +90,11 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true,
+              "sourceMap": {
+                "scripts": true,
+                "styles": true,
+                "vendor": true
+              },
               "namedChunks": true
             }
           },
