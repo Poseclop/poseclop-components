@@ -1,4 +1,5 @@
 /* eslint-disable @angular-eslint/no-output-native */
+import { NgClass } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -17,6 +18,9 @@ import {
   takeUntil,
   tap,
 } from 'rxjs';
+import { SortPipe } from './sort.pipe';
+import { ChapterPipe } from './chapter.pipe';
+import { TimePipe } from './time.pipe';
 
 export interface ISourceAttribute {
   src: string;
@@ -44,7 +48,12 @@ export interface IChapterAttribute {
   selector: 'ngx-video-player',
   templateUrl: './ngx-video-player.component.html',
   styleUrls: ['./ngx-video-player.component.scss'],
-  standalone: false
+  imports: [
+    NgClass,
+    SortPipe,
+    ChapterPipe,
+    TimePipe,
+  ]
 })
 export class NgxVideoPlayerComponent
   implements OnInit, AfterViewInit, OnDestroy {

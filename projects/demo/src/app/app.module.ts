@@ -6,7 +6,7 @@ import { AppComponent } from './app.component';
 
 import { NgxCarouselModule } from 'ngx-carousel';
 import { NgxThreeDimensionCarouselModule } from 'ngx-three-dimension-carousel';
-import { NgxVideoPlayerModule } from 'projects/ngx-video-player/src/public-api';
+import { NgxVideoPlayerComponent } from 'projects/ngx-video-player/src/public-api';
 
 @NgModule({
   declarations: [
@@ -15,9 +15,9 @@ import { NgxVideoPlayerModule } from 'projects/ngx-video-player/src/public-api';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    NgxVideoPlayerModule,
     NgxCarouselModule,
     NgxThreeDimensionCarouselModule,
+    NgxVideoPlayerComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

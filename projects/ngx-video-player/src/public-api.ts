@@ -3,4 +3,3 @@
  */
 
 export * from './lib/ngx-video-player.component';
-export * from './lib/ngx-video-player.module';
