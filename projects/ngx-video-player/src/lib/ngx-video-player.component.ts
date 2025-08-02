@@ -97,9 +97,9 @@ export class NgxVideoPlayerComponent
   /** The video element */
   video = viewChild.required<unknown, ElementRef<HTMLVideoElement>>('video', { read: ElementRef });
   /** The progress bar element */
-  @ViewChild('progress') progress!: ElementRef<HTMLElement>;
+  @ViewChild('progress') private progress!: ElementRef<HTMLElement>;
   /** The figure element (container to video and controls) */
-  @ViewChild('figure') figure!: ElementRef<HTMLElement>;
+  @ViewChild('figure') private figure!: ElementRef<HTMLElement>;
   //#endregion
 
   //#region PUBLIC PROPERTIES
@@ -365,21 +365,12 @@ export class NgxVideoPlayerComponent
   }
   //#endregion
 
-  /**
-   * Coerces a data-bound value (typically a string) to a boolean.
-   * @param value The value to coerce
-   * @returns The coerced value
-   */
-  _coerceBooleanProperty(value: boolean | string): boolean {
-    return value != null && `${value}` !== 'false';
-  }
-
   //#region EVENT HANDLERS
   /**
    * Called when the value of volume input is changed
    * @param event The event
    */
-  onVolumeChange(event: Event): void {
+  protected onVolumeChange(event: Event): void {
     const volume = (event.target as HTMLInputElement).value;
     this.setVideoVolume(+volume);
   }
@@ -387,7 +378,7 @@ export class NgxVideoPlayerComponent
   /**
    * Called when the metadata of the video is loaded
    */
-  onMetadataLodaded(): void {
+  protected onMetadataLodaded(): void {
     // Sort chapters by time and calculate duration
     this.chapters.set(this.chapters()
       .sort((a, b) => a.time - b.time)
@@ -405,7 +396,7 @@ export class NgxVideoPlayerComponent
    * @param event The mouse event
    * @returns void
    */
-  onProgressHover(event?: MouseEvent): void {
+  protected onProgressHover(event?: MouseEvent): void {
     if (!event) return;
     const rect = this.progress.nativeElement.getBoundingClientRect();
     const pos = (event.clientX - rect.left) / rect.width;
@@ -422,7 +413,7 @@ export class NgxVideoPlayerComponent
    * Sets the video time based on the progress bar position
    * @param event The mouse event
    */
-  onProgressBarClick(event: MouseEvent): void {
+  protected onProgressBarClick(event: MouseEvent): void {
     const rect = this.progress.nativeElement.getBoundingClientRect();
     const pos = (event.clientX - rect.left) / rect.width;
     this.setVideoTime(pos * this.video().nativeElement.duration);
