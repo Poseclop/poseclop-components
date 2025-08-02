@@ -15,15 +15,17 @@ import {
 } from '@angular/core';
 import {
   BehaviorSubject,
-  Subject,
   combineLatest,
   debounceTime,
   fromEvent,
+  of,
+  Subject,
+  switchMap,
   takeUntil,
-  tap,
+  tap
 } from 'rxjs';
-import { SortPipe } from './sort.pipe';
 import { ChapterPipe } from './chapter.pipe';
+import { SortPipe } from './sort.pipe';
 import { TimePipe } from './time.pipe';
 
 export interface ISourceAttribute {
@@ -276,62 +278,72 @@ export class NgxVideoPlayerComponent
     let canvas: HTMLCanvasElement;
     let chapters: { title: string; time: number }[];
 
-    combineLatest([this.updateThumbnail$, this.resetThumbnail$])
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([seconds, resetThumbnail]) => {
-        if (!video || resetThumbnail) {
-          video = this.video().nativeElement.cloneNode(true) as HTMLVideoElement;
-          video.muted = true;
-          video.autoplay = false;
-          video.crossOrigin = 'anonymous';
+    combineLatest([
+      this.updateThumbnail$.pipe(
+        debounceTime(10),
+      ),
+      this.resetThumbnail$
+    ])
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        switchMap(([seconds, resetThumbnail]) => {
+          if (!video || resetThumbnail) {
+            video = this.video().nativeElement.cloneNode(true) as HTMLVideoElement;
+            video.muted = true;
+            video.autoplay = false;
+            video.crossOrigin = 'anonymous';
 
-          video.addEventListener('seeked', () => {
-            try {
-              canvas
-                .getContext('2d')
-                ?.clearRect(0, 0, canvas.width, canvas.height);
-              canvas
-                .getContext('2d')
-                ?.drawImage(video, 0, 0, canvas.width, canvas.height);
-              this.thumbnailSrc = canvas.toDataURL();
-            } catch (error) {
-              console.error(
-                "Error drawing thumbnail. It's likely that CORS headers are not present on the video",
-                error
-              );
-              this.thumbnailSrc = '';
-            }
-          });
-        }
+            video.addEventListener('seeked', () => {
+              try {
+                canvas
+                  .getContext('2d')
+                  ?.clearRect(0, 0, canvas.width, canvas.height);
+                canvas
+                  .getContext('2d')
+                  ?.drawImage(video, 0, 0, canvas.width, canvas.height);
+                this.thumbnailSrc = canvas.toDataURL();
+              } catch (error) {
+                console.error(
+                  "Error drawing thumbnail. It's likely that CORS headers are not present on the video",
+                  error
+                );
+                this.thumbnailSrc = '';
+              }
+            });
+          }
 
-        if (!canvas || resetThumbnail) {
-          canvas = document.createElement('canvas');
-          const ratio =
-            this.video().nativeElement.videoWidth /
-            this.video().nativeElement.videoHeight;
-          canvas.width = 160;
-          canvas.height = Math.floor(160 / ratio);
-        }
+          if (!canvas || resetThumbnail) {
+            canvas = document.createElement('canvas');
+            const ratio =
+              this.video().nativeElement.videoWidth /
+              this.video().nativeElement.videoHeight;
+            canvas.width = 160;
+            canvas.height = Math.floor(160 / ratio);
+          }
 
-        if (!chapters || resetThumbnail) {
-          chapters = this.chapters
-            ? [...this.chapters()].sort((a, b) => b.time - a.time)
-            : [];
-        }
+          if (!chapters || resetThumbnail) {
+            chapters = this.chapters
+              ? [...this.chapters()].sort((a, b) => b.time - a.time)
+              : [];
+          }
 
-        this.thunmnailChapter = chapters.find(
-          (chapter) => chapter.time <= seconds
-        )?.title;
-        this.thumbnailTime = seconds;
+          this.thunmnailChapter = chapters.find(
+            (chapter) => chapter.time <= seconds
+          )?.title;
+          this.thumbnailTime = seconds;
 
-        if (video && video.readyState >= 2) {
-          video.currentTime = seconds;
-        }
+          if (video && video.readyState >= 2) {
+            video.currentTime = seconds;
+          }
 
-        if (resetThumbnail) {
-          this.resetThumbnail$.next(false);
-        }
-      });
+          if (resetThumbnail) {
+            this.resetThumbnail$.next(false);
+          }
+
+          return of(true)
+        })
+      )
+      .subscribe();
   }
 
   /**

@@ -1,9 +1,9 @@
 {
   "name": "@poseclop/ngx-video-player",
-  "version": "1.5.0",
+  "version": "20.0.1",
   "peerDependencies": {
-    "@angular/common": "^19.2.5",
-    "@angular/core": "^19.2.5"
+    "@angular/common": "^20.1.2",
+    "@angular/core": "^20.1.2"
   },
   "dependencies": {
     "tslib": "^2.3.0"
